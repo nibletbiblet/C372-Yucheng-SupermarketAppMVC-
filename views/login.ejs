@@ -133,21 +133,76 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        /* Enhanced Alert Styles */
         .alert {
-            padding: 1rem;
-            border-radius: 0.5rem;
+            padding: 1.2rem;
+            border-radius: 0.8rem;
             margin-bottom: 1.5rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: currentColor;
         }
 
         .alert-success {
-            background: #d1fae5;
-            color: #065f46;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
         }
 
         .alert-error {
-            background: #fee2e2;
+            background: #fef2f2;
             color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+        }
+
+        .alert-message {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: currentColor;
+            cursor: pointer;
+            padding: 0.2rem;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
         }
 
         .register-link {
@@ -185,13 +240,12 @@
         <div class="login-card">
             <h2>Welcome Back</h2>
             
-            <% if (messages) { %>
-                <div class="alert alert-success"><%= messages %></div>
+            <% if (messages || errors) { %>
+                <div class="alert alert-success" role="alert">
+                    <span class="alert-message">Email and Password needed</span>
+                </div>
             <% } %>
-            <% if (errors) { %>
-                <div class="alert alert-error"><%= errors %></div>
-            <% } %>
-
+            
             <form action="/login" method="POST">
                 <div class="form-group">
                     <input type="email" name="email" placeholder="Email address" required>
@@ -207,5 +261,30 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.animation = 'slideOut 0.5s ease-in forwards';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        // Add slide out animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                to {
+                    transform: translateY(-20px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
