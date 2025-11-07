@@ -1,0 +1,22 @@
+/* Admin Theme */
+.admin-theme {
+    --gradient-bg: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --accent-color: #26d0ce;
+}
+
+/* User Theme */
+.user-theme {
+    --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --accent-color: #667eea;
+}
+
+/* Apply theme gradients */
+body.admin-theme {
+    background: var(--gradient-bg);
+}
+
+body.user-theme {
+    background: var(--gradient-bg);
+}
