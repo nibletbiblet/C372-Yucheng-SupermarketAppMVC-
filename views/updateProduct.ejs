@@ -1,66 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Product - FreshMarket</title>
-    <%- include('partials/shared-styles') %>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Update Product - FreshMarket</title>
+	<style>
+		*{box-sizing:border-box;margin:0;padding:0}
+		body{font-family:Segoe UI,Roboto,Arial;background:linear-gradient(135deg,#f5f7ff,#eef6fb);min-height:100vh;color:#111827}
+		.nav{background:rgba(255,255,255,.95);padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+		.container{width:90%;max-width:1100px;margin:0 auto}
+		.nav-content{display:flex;justify-content:space-between;align-items:center}
+		.logo{font-weight:800;color:#667eea;font-size:1.25rem}
+		.nav-links{display:flex;gap:12px}
+		.nav-links a{padding:.4rem .8rem;border-radius:.5rem;text-decoration:none;color:#444}
+		.nav-links a:hover{background:#667eea;color:#fff}
+		.card{background:#fff;border-radius:12px;padding:24px;margin:28px 0;box-shadow:0 10px 30px rgba(2,6,23,.06)}
+		h1{font-size:20px;margin-bottom:6px}
+		.subtitle{color:#6b7280;margin-bottom:18px}
+		.form-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+		@media(max-width:880px){.form-grid{grid-template-columns:1fr}}
+		.form-row{display:flex;flex-direction:column;margin-bottom:12px}
+		label{font-weight:600;margin-bottom:6px;color:#111827}
+		input[type="text"],input[type="number"],input[type="file"],select{padding:10px;border:1px solid #e6e9ef;border-radius:8px}
+		.img-preview{width:100%;height:240px;object-fit:cover;border-radius:8px;border:1px solid #eee;background:#f8fafc}
+		.controls{display:flex;gap:12px;margin-top:12px}
+		.btn{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+		.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+		.btn-secondary{background:#eef2ff;color:#374151}
+		.btn-danger{background:#fee2e2;color:#b91c1c}
+		.note{font-size:13px;color:#6b7280}
+		.field-error{color:#ef4444;font-size:13px;min-height:16px;margin-top:6px}
+	</style>
 </head>
 <body>
-    <div class="bg-animation" id="bgAnimation"></div>
+	<nav class="nav">
+		<div class="container">
+			<div class="nav-content">
+				<div class="logo">🛒 FreshMarket</div>
+				<div class="nav-links">
+					<a href="/inventory">Inventory</a>
+					<a href="/addProduct">Add</a>
+					<a href="/logout">Logout</a>
+				</div>
+			</div>
+		</div>
+	</nav>
 
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="/">🛒 FreshMarket</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/inventory">Inventory</a>
-                <a class="nav-link" href="/addProduct">Add Product</a>
-                <a class="nav-link" href="/logout">Logout</a>
-            </div>
-        </div>
-    </nav>
+	<div class="container">
+		<div class="card">
+			<h1>Update Product</h1>
+			<p class="subtitle">Edit product details and upload a new image if needed.</p>
 
-    <main class="container">
-        <div class="page-header">
-            <h1>Update Product</h1>
-        </div>
+			<% if (product) { %>
+				<form action="/updateProduct/<%= product.id %>" method="POST" enctype="multipart/form-data">
+					<div class="form-grid">
+						<div>
+							<div class="form-row">
+								<label for="name">Product Name</label>
+								<input id="name" name="name" type="text" value="<%= product.productName %>" required>
+								<span class="field-error" data-for="name"></span>
+							</div>
 
-        <% if (product) { %>
-            <div class="auth-card mx-auto">
-                <form action="/updateProduct/<%= product.id %>" method="POST" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label class="form-label">Product Name</label>
-                        <input type="text" class="form-control" name="name" value="<%= product.productName %>" required>
-                    </div>
+							<div class="form-row">
+								<label for="quantity">Quantity</label>
+								<input id="quantity" name="quantity" type="number" min="0" step="1" value="<%= product.quantity %>" required>
+								<span class="field-error" data-for="quantity"></span>
+							</div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Quantity</label>
-                        <input type="number" class="form-control" name="quantity" value="<%= product.quantity %>" required>
-                    </div>
+							<div class="form-row">
+								<label for="price">Price</label>
+								<input id="price" name="price" type="number" min="0" step="0.01" value="<%= product.price %>" required>
+								<span class="field-error" data-for="price"></span>
+							</div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Price</label>
-                        <input type="number" class="form-control" name="price" step="0.01" value="<%= product.price %>" required>
-                    </div>
+							<div class="form-row">
+								<label for="role">Category (optional)</label>
+								<select id="role" name="category">
+									<option value="">-- select category --</option>
+									<option value="grocery">Grocery</option>
+									<option value="produce">Produce</option>
+									<option value="beverages">Beverages</option>
+								</select>
+							</div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Current Image</label>
-                        <input type="text" class="form-control" name="currentImage" value="<%= product.image %>" readonly>
-                        <img src="/images/<%= product.image %>" class="img-thumbnail mt-3" style="max-width: 200px;">
-                    </div>
+							<div class="form-row">
+								<label for="image">Upload New Image</label>
+								<input id="image" name="image" type="file" accept="image/*">
+								<input type="hidden" name="currentImage" value="<%= product.image %>">
+								<span class="note">Leave empty to keep current image.</span>
+							</div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Upload New Image</label>
-                        <input type="file" class="form-control" name="image" accept="image/*">
-                    </div>
+							<div class="controls">
+								<button type="submit" class="btn btn-primary">Save Changes</button>
+								<a href="/inventory" class="btn btn-secondary">Cancel</a>
+								<a href="/deleteProduct/<%= product.id %>" class="btn btn-danger" onclick="return confirm('Delete this product?')">Delete</a>
+							</div>
+						</div>
 
-                    <div class="d-grid gap-3">
-                        <button type="submit" class="btn btn-primary">Update Product</button>
-                        <a href="/inventory" class="btn btn-secondary">Back to Inventory</a>
-                    </div>
-                </form>
-            </div>
-        <% } %>
-    </main>
+						<div>
+							<label>Current Image</label>
+							<img id="preview" src="/images/<%= product.image %>" alt="Current image" class="img-preview">
+							<div class="note" style="margin-top:8px">Preview updates immediately when you choose a new image.</div>
+						</div>
+					</div>
+				</form>
+			<% } else { %>
+				<p>No product found.</p>
+			<% } %>
+		</div>
+	</div>
+
+	<script>
+		// image preview
+		const fileInput = document.getElementById('image');
+		const preview = document.getElementById('preview');
+		if(fileInput){
+			fileInput.addEventListener('change', (e) => {
+				const f = e.target.files[0];
+				if(!f) return;
+				const reader = new FileReader();
+				reader.onload = (ev) => preview.src = ev.target.result;
+				reader.readAsDataURL(f);
+			});
+		}
+	</script>
 </body>
 </html>
