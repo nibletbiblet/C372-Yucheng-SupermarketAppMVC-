@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:linear-gradient(135deg,#f5f7ff,#eef6fb); min-height:100vh; font-family:'Segoe UI',Roboto,Arial; display:flex; align-items:center; justify-content:center; }
+        .success-card { background:#fff; border-radius:1rem; padding:3rem; text-align:center; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,.1); }
+        .success-icon { font-size:4rem; margin-bottom:1rem; }
+        h1 { color:#10b981; margin-bottom:1rem; }
+        .order-id { background:#f0fdf4; padding:1rem; border-radius:.5rem; margin:1rem 0; }
+        .btn { display:inline-block; padding:1rem 2rem; margin:.5rem; border-radius:.5rem; text-decoration:none; font-weight:600; transition:all .2s; }
+        .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(102,126,234,.3); }
+        .btn-secondary { background:#eef2ff; color:#374151; }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <div class="success-icon">✅</div>
+        <h1>Order Placed Successfully!</h1>
+        <p style="color:#666;margin-bottom:1rem">Thank you for your purchase</p>
+        
+        <div class="order-id">
+            <strong>Order ID:</strong> #<%= order.order_id %>
+            <br>
+            <strong>Total:</strong> $<%= order.total_price.toFixed(2) %>
+        </div>
+
+        <div style="margin-top:2rem">
+            <a href="/shopping" class="btn btn-primary">Continue Shopping</a>
+            <a href="/checkout/orders" class="btn btn-secondary">View My Orders</a>
+        </div>
+    </div>
+</body>
+</html>

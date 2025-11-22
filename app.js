@@ -21,8 +21,8 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'Republic_C207',
-    database: 'c372_supermarketdb'
-  });
+    database: 'c372_supermarketdb'  // Changed back
+});
 
 connection.connect((err) => {
     if (err) {
@@ -51,6 +51,10 @@ app.use(session({
 }));
 
 app.use(flash());
+
+// Add these lines after the flash middleware
+const cartRoutes = require('./routes/cartRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
 
 // Middleware to check if user is logged in
 const checkAuthenticated = (req, res, next) => {
@@ -88,9 +92,18 @@ const validateRegistration = (req, res, next) => {
     next();
 };
 
+// Mount new routes (add before existing routes)
+app.use('/cart', cartRoutes);
+app.use('/checkout', checkoutRoutes);
+
 // Define routes
 app.get('/',  (req, res) => {
     res.render('index', {user: req.session.user} );
+});
+
+// Add meta.json route to fix 404 error
+app.get('/meta.json', (req, res) => {
+    res.json({});
 });
 
 app.get('/inventory', checkAuthenticated, checkAdmin, (req, res) => {
@@ -127,6 +140,8 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
+    console.log('Login attempt for:', email); // Debug log
+
     // Validate email and password
     if (!email || !password) {
         req.flash('error', 'All fields are required.');
@@ -136,19 +151,33 @@ app.post('/login', (req, res) => {
     const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
     connection.query(sql, [email, password], (err, results) => {
         if (err) {
-            throw err;
+            console.error('Login error:', err);
+            req.flash('error', 'Login failed. Please try again.');
+            return res.redirect('/login');
         }
+
+        console.log('Query results:', results.length); // Debug log
 
         if (results.length > 0) {
             // Successful login
             req.session.user = results[0]; 
-            req.flash('success', 'Login successful!');
-            if(req.session.user.role == 'user')
-                res.redirect('/shopping');
-            else
-                res.redirect('/inventory');
+            console.log('User logged in:', req.session.user.username); // Debug log
+            
+            // Save session before redirect
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Session save error:', err);
+                }
+                req.flash('success', 'Login successful!');
+                if(req.session.user.role === 'user') {
+                    res.redirect('/shopping');
+                } else {
+                    res.redirect('/inventory');
+                }
+            });
         } else {
             // Invalid credentials
+            console.log('Invalid credentials for:', email); // Debug log
             req.flash('error', 'Invalid email or password.');
             res.redirect('/login');
         }
@@ -178,20 +207,21 @@ app.post('/add-to-cart/:id', checkAuthenticated, (req, res) => {
                 req.session.cart = [];
             }
 
-            // Check if product already in cart
-            const existingItem = req.session.cart.find(item => item.productId === productId);
+            // Check if product already in cart (using correct id field)
+            const existingItem = req.session.cart.find(item => item.id === productId);
             if (existingItem) {
                 existingItem.quantity += quantity;
             } else {
                 req.session.cart.push({
-                    id: product.productId,
-                    productName: product.productName,
-                    price: product.price,
+                    id: product.id,  // Changed from product.productId
+                    name: product.productName,  // Changed from productName
+                    price: parseFloat(product.price),  // Ensure it's a number
                     quantity: quantity,
                     image: product.image
                 });
             }
 
+            req.flash('success', 'Product added to cart!');
             res.redirect('/cart');
         } else {
             res.status(404).send("Product not found");
@@ -201,7 +231,17 @@ app.post('/add-to-cart/:id', checkAuthenticated, (req, res) => {
 
 app.get('/cart', checkAuthenticated, (req, res) => {
     const cart = req.session.cart || [];
-    res.render('cart', { cart, user: req.session.user });
+    let total = 0;
+    cart.forEach(item => {
+        total += item.price * item.quantity;
+    });
+    res.render('cart', { 
+        cart, 
+        user: req.session.user,
+        total,  // Add total calculation
+        messages: req.flash('success'),
+        errors: req.flash('error')
+    });
 });
 
 app.get('/logout', (req, res) => {
@@ -313,5 +353,5 @@ app.get('/deleteProduct/:id', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001; // Changed from 3000 to 3001
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
