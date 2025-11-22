@@ -78,17 +78,38 @@ const checkAdmin = (req, res, next) => {
 
 // Middleware for form validation
 const validateRegistration = (req, res, next) => {
-    const { username, email, password, address, contact, role } = req.body;
+    const { username, email, password, confirmPassword, address, contact, role } = req.body;
 
-    if (!username || !email || !password || !address || !contact || !role) {
-        return res.status(400).send('All fields are required.');
-    }
-    
-    if (password.length < 6) {
-        req.flash('error', 'Password should be at least 6 or more characters long');
+    if (!username || !email || !password || !confirmPassword || !address || !contact || !role) {
+        req.flash('error', 'All fields are required.');
         req.flash('formData', req.body);
         return res.redirect('/register');
     }
+    
+    if (password.length < 8) {
+        req.flash('error', 'Password must be at least 8 characters long');
+        req.flash('formData', req.body);
+        return res.redirect('/register');
+    }
+
+    // Check password complexity
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+        req.flash('error', 'Password must contain uppercase, lowercase, number, and special character');
+        req.flash('formData', req.body);
+        return res.redirect('/register');
+    }
+
+    if (password !== confirmPassword) {
+        req.flash('error', 'Passwords do not match');
+        req.flash('formData', req.body);
+        return res.redirect('/register');
+    }
+
     next();
 };
 
@@ -119,15 +140,33 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', validateRegistration, (req, res) => {
-
     const { username, email, password, address, contact, role } = req.body;
 
     const sql = 'INSERT INTO users (username, email, password, address, contact, role) VALUES (?, ?, SHA1(?), ?, ?, ?)';
     connection.query(sql, [username, email, password, address, contact, role], (err, result) => {
         if (err) {
-            throw err;
+            console.error('Registration error:', err);
+            
+            // Handle specific errors
+            if (err.code === 'ER_DUP_ENTRY') {
+                req.flash('error', 'Email already exists. Please use a different email or login.');
+                req.flash('formData', req.body);
+                return res.redirect('/register');
+            }
+            
+            if (err.code === 'ER_DATA_TOO_LONG') {
+                req.flash('error', 'One of the fields is too long. Please check your input.');
+                req.flash('formData', req.body);
+                return res.redirect('/register');
+            }
+            
+            // Generic error
+            req.flash('error', 'Registration failed. Please try again.');
+            req.flash('formData', req.body);
+            return res.redirect('/register');
         }
-        console.log(result);
+        
+        console.log('User registered successfully:', result.insertId);
         req.flash('success', 'Registration successful! Please log in.');
         res.redirect('/login');
     });
@@ -353,5 +392,5 @@ app.get('/deleteProduct/:id', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3001; // Changed from 3000 to 3001
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

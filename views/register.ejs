@@ -29,6 +29,30 @@
 		.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(102,126,234,.3)}
 		.note{font-size:13px;color:#6b7280;text-align:center;margin-top:14px}
 		.note a{color:#667eea;text-decoration:none;font-weight:600}
+		.password-requirements {
+			background: #f8fafc;
+			padding: 12px;
+			border-radius: 8px;
+			margin-top: 8px;
+			font-size: 12px;
+		}
+		.requirement {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			margin: 4px 0;
+			color: #6b7280;
+		}
+		.requirement.met {
+			color: #10b981;
+		}
+		.requirement.met::before {
+			content: '✓';
+			font-weight: bold;
+		}
+		.requirement:not(.met)::before {
+			content: '○';
+		}
 	</style>
 </head>
 <body>
@@ -48,61 +72,176 @@
 	<div class="container">
 		<div class="card">
 			<h1>Create Account</h1>
-			<p class="subtitle">Join FreshMarket today</p>
+			<p class="subtitle">Join FreshMarket today - Secure Registration</p>
 
 			<% if (messages && messages.length > 0) { %>
-				<div class="alert">
-					<% messages.forEach(function(message) { %>
-						<p><%= message %></p>
-					<% }); %>
+				<div class="alert alert-error">
+					<%= messages[0] %>
 				</div>
 			<% } %>
 
-			<form action="/register" method="POST">
+			<form action="/register" method="POST" id="registerForm" autocomplete="off">
 				<div class="form-grid">
 					<div class="form-row">
 						<label for="username">Username</label>
-						<input type="text" id="username" name="username" 
-							value="<%= formData && formData.username ? formData.username : '' %>" required>
+						<input type="text" id="username" name="username" placeholder="Enter your name"
+							value="<%= formData && formData.username ? formData.username : '' %>" required autocomplete="off">
 					</div>
 
 					<div class="form-row">
 						<label for="email">Email</label>
-						<input type="email" id="email" name="email" 
-							value="<%= formData && formData.email ? formData.email : '' %>" required>
+						<input type="email" id="email" name="email" placeholder="your@email.com"
+							value="<%= formData && formData.email ? formData.email : '' %>" required autocomplete="off">
 					</div>
 
 					<div class="form-row">
 						<label for="password">Password</label>
-						<input type="password" id="password" name="password" required>
+						<div class="password-wrapper">
+							<input type="password" id="password" name="password" placeholder="Create a strong password" required autocomplete="new-password">
+							<button type="button" class="password-toggle" onclick="togglePassword('password')">👁️</button>
+						</div>
+						<div class="password-strength">
+							<div id="strengthBar" class="password-strength-bar"></div>
+						</div>
+						<div class="password-requirements">
+							<div class="requirement" id="req-length">At least 8 characters</div>
+							<div class="requirement" id="req-upper">One uppercase letter</div>
+							<div class="requirement" id="req-lower">One lowercase letter</div>
+							<div class="requirement" id="req-number">One number</div>
+							<div class="requirement" id="req-special">One special character (!@#$%^&*)</div>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<label for="confirmPassword">Confirm Password</label>
+						<div class="password-wrapper">
+							<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
+							<button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</button>
+						</div>
+						<small id="passwordMatch" class="match-indicator">Passwords do not match</small>
 					</div>
 
 					<div class="form-row">
 						<label for="contact">Contact Number</label>
-						<input type="text" id="contact" name="contact" 
+						<input type="tel" id="contact" name="contact" placeholder="+1 234 567 8900"
 							value="<%= formData && formData.contact ? formData.contact : '' %>" required>
 					</div>
 
 					<div class="form-row">
-						<label for="address">Address</label>
-						<input type="text" id="address" name="address" 
-							value="<%= formData && formData.address ? formData.address : '' %>" required>
-					</div>
-
-					<div class="form-row">
-						<label for="role">Role</label>
+						<label for="role">Account Type</label>
 						<select id="role" name="role" required>
 							<option value="user" <%= formData && formData.role === 'user' ? 'selected' : '' %>>User</option>
 							<option value="admin" <%= formData && formData.role === 'admin' ? 'selected' : '' %>>Admin</option>
 						</select>
 					</div>
+
+					<div class="form-row full-width">
+						<label for="address">Address</label>
+						<input type="text" id="address" name="address" placeholder="123 Main Street, City"
+							value="<%= formData && formData.address ? formData.address : '' %>" required>
+					</div>
 				</div>
 
-				<button type="submit" class="btn btn-primary">Register</button>
+				<div class="checkbox-wrapper">
+					<input type="checkbox" id="terms" required>
+					<label for="terms">I agree to the Terms of Service and Privacy Policy</label>
+				</div>
+
+				<button type="submit" class="btn btn-primary" id="submitBtn" disabled>Create Account</button>
 			</form>
 
 			<p class="note">Already have an account? <a href="/login">Login here</a></p>
 		</div>
 	</div>
+
+	<script>
+		function togglePassword(fieldId){
+			const field=document.getElementById(fieldId);
+			const button=field.nextElementSibling;
+			if(field.type==='password'){field.type='text';button.textContent='🙈'}
+			else{field.type='password';button.textContent='👁️'}
+		}
+
+		const passwordInput=document.getElementById('password');
+		const confirmPassword=document.getElementById('confirmPassword');
+		const strengthBar=document.getElementById('strengthBar');
+		const passwordMatch=document.getElementById('passwordMatch');
+		const submitBtn=document.getElementById('submitBtn');
+		const terms=document.getElementById('terms');
+
+		const requirements = {
+			length: { el: document.getElementById('req-length'), regex: /.{8,}/ },
+			upper: { el: document.getElementById('req-upper'), regex: /[A-Z]/ },
+			lower: { el: document.getElementById('req-lower'), regex: /[a-z]/ },
+			number: { el: document.getElementById('req-number'), regex: /\d/ },
+			special: { el: document.getElementById('req-special'), regex: /[!@#$%^&*(),.?":{}|<>]/ }
+		};
+
+		function checkPasswordRequirements(){
+			const password = passwordInput.value;
+			let metCount = 0;
+
+			Object.values(requirements).forEach(req => {
+				if(req.regex.test(password)){
+					req.el.classList.add('met');
+					metCount++;
+				} else {
+					req.el.classList.remove('met');
+				}
+			});
+
+			// Update strength bar
+			strengthBar.className = 'password-strength-bar';
+			if(metCount <= 2) strengthBar.classList.add('strength-weak');
+			else if(metCount <= 4) strengthBar.classList.add('strength-medium');
+			else strengthBar.classList.add('strength-strong');
+
+			return metCount === 5;
+		}
+
+		function checkPasswordMatch(){
+			if(!confirmPassword.value){
+				passwordMatch.className='match-indicator';
+				return false;
+			}
+			if(passwordInput.value === confirmPassword.value){
+				passwordMatch.textContent='✓ Passwords match';
+				passwordMatch.className='match-indicator success';
+				return true;
+			} else {
+				passwordMatch.textContent='✗ Passwords do not match';
+				passwordMatch.className='match-indicator error';
+				return false;
+			}
+		}
+
+		function updateSubmitButton(){
+			const allReqMet = checkPasswordRequirements();
+			const passwordsMatch = checkPasswordMatch();
+			submitBtn.disabled = !(allReqMet && passwordsMatch && terms.checked);
+		}
+
+		passwordInput.addEventListener('input', updateSubmitButton);
+		confirmPassword.addEventListener('input', updateSubmitButton);
+		terms.addEventListener('change', updateSubmitButton);
+
+		document.getElementById('registerForm').addEventListener('submit', function(e){
+			if(!checkPasswordRequirements()){
+				e.preventDefault();
+				alert('Please meet all password requirements');
+				return;
+			}
+			if(!checkPasswordMatch()){
+				e.preventDefault();
+				alert('Passwords do not match');
+				return;
+			}
+			if(!terms.checked){
+				e.preventDefault();
+				alert('You must accept the terms');
+				return;
+			}
+		});
+	</script>
 </body>
 </html>
