@@ -42,345 +42,93 @@
         .product-title:hover { color:#667eea; }
         .product-price { font-size:1.2rem; font-weight:600; color:#667eea; }
         .product-stock { color:#666; font-size:.9rem; margin:.5rem 0; }
-            margin-bottom:1rem;
+        
         .btn { display:inline-flex; align-items:center; justify-content:center; padding:.8rem 1.5rem; border:none; border-radius:.5rem; font-weight:600; cursor:pointer; transition:all .2s; }
         .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
         .btn-primary:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(102,126,234,.3); }
-        .product-card:hover .product-img {
+        
         .quantity-input { width:80px; padding:.8rem; border:2px solid #eee; border-radius:.5rem; margin-right:.5rem; }
-
-        .cart-badge { 
-            position: relative;  .product-title { font-size:1.1rem; color:#1a1a1a; margin-bottom:.5rem; text-decoration:none; }
-        }e:hover { color:#667eea; }
-        .cart-badge::after {ize:1.2rem; font-weight:600; color:#667eea; }
-            content: '<%= cart ? cart.length : 0 %>';font-size:.9rem; margin:.5rem 0; }
-            position: absolute;
-            top: -8px;gn-items:center; justify-content:center; padding:.8rem 1.5rem; border:none; border-radius:.5rem; font-weight:600; cursor:pointer; transition:all .2s; }
-            right: -8px;t(135deg,#667eea,#764ba2); color:#fff; }
-            background: #ef4444;lateY(-2px); box-shadow:0 4px 12px rgba(102,126,234,.3); }
-            color: white;
-            border-radius: 50%;rem; border:2px solid #eee; border-radius:.5rem; margin-right:.5rem; }
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;lass="nav">
-            justify-content: center;        <div class="container">
-            font-size: 11px;-content">
-            font-weight: 600;="logo">🛒 FreshMarket</div>
-        }
     </style>
-</head>      <a href="/cart">Cart</a>
-<body>            <a href="/checkout/orders">My Orders</a>
-    <nav class="nav">logout">Logout</a>
+</head>
+<body>
+    <nav class="nav">
         <div class="container">
             <div class="nav-content">
                 <div class="logo">🛒 FreshMarket</div>
                 <div class="nav-links">
                     <a href="/shopping">Shop</a>
-                    <a href="/cart" class="cart-badge">🛒 Cart</a>iner">on value="beverages">Beverages</option>
-                    <a href="/checkout/orders">My Orders</a>lass="hero">select>
-                    <a href="/logout">Logout</a>            <h1>Welcome, <%= user.username %></h1>            <select id="sortSelect" class="sort-select">
-                </div></p>px) {
-            </div>nu-btn {
-        </div>splay: block;
-    </nav>
->       
-    <div class="container">
-        <div class="hero">
-            <h1>Welcome, <%= user.username %></h1>
-            <p>Browse our fresh selection of products</p>lue="price-desc">Price: High to Low</option>="product-card" 
-        </div>>"  0;
-            right: 0;
-        <div class="controls">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
-            <select id="sortSelect" class="sort-select">(function(product) { %>href="/product/<%= product.id %>" ><%= product.productName %></a></h3>
-                <option value="">Sort by</option>="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>">mg src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">
-                <option value="price-asc">Price: Low to High</option>iv class="product-info">  <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>
-                <option value="price-desc">Price: High to Low</option>   <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>   <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-            </select>          <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">      </div>
-        </div>              <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>          <div class="button-group">
-                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>                        <form action="/add-to-cart/<%= product.id %>" method="POST">
-        <div class="products-grid" id="productsGrid">        </div>                <input type="number" name="quantity" value="1" min="1" class="quantity-input">
-            <% products.forEach(function(product) { %>roup">="submit" class="btn btn-primary">Add to Cart</button>
-                <div class="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>"> method="POST">
-                    <div class="product-info">lue="1" min="1" class="quantity-input">
-                        <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>primary">Add to Cart</button>
-                        <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">
-                        <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>                    </div>        </div>
-                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-                    </div>
-                    <div class="button-group">
-                        <form action="/add-to-cart/<%= product.id %>" method="POST">rch and sort functionality
-                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">tsGrid');
-                            <button type="submit" class="btn btn-primary">Add to Cart</button>
-                        </form>rtSelect');menu-btn" onclick="toggleMenu()">☰</button>
-                    </div>yId('productsGrid');tById('categoryFilter');
-                </div>earchInput = document.getElementById('searchInput');roducts = Array.from(productsGrid.children);
-            <% }); %>        const sortSelect = document.getElementById('sortSelect');
-        </div>ay.from(productsGrid.children);ay() {
-    </div>erCase(); <a href="/checkout/orders">My Orders</a>
+                    <a href="/cart">Cart (<%= cart.length %>)</a>
+                    <a href="/checkout/orders">My Orders</a>
                     <a href="/logout">Logout</a>
-    <script>ase();div>
-        // Search and sort functionality
-        const productsGrid = document.getElementById('productsGrid');
-        const searchInput = document.getElementById('searchInput');er productsst name = card.dataset.name;
-        const sortSelect = document.getElementById('sortSelect');onst filtered = products.filter(card => {   const category = card.dataset.category;
-        const products = Array.from(productsGrid.children);                const name = card.dataset.name;                const matchesSearch = name.includes(searchTerm);
-ncludes(searchTerm);Category = !categoryValue || category === categoryValue;
-        function updateDisplay() {username %></h1>
-            const searchTerm = searchInput.value.toLowerCase();rice-desc">Price: High to Low</option>="product-card" 
-            const sortValue = sortSelect.value;   // Sort products
-                        if(sortValue) {            if(sortValue) {
-            // Filter products
-            const filtered = products.filter(card => {););rch-input" placeholder="Search products...">
-                const name = card.dataset.name;       const priceB = parseFloat(b.dataset.price);       const priceB = parseFloat(b.dataset.price);3>
-                return name.includes(searchTerm);             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;g-fluid product-img">
-            });         });         });c">Price: Low to High</option>iv class="product-info">  <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>
-            }            }lue="price-desc">Price: High to Low</option>   <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>   <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-            </select>          <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">      </div>
-        </div>              <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>          <div class="button-group">
-                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>                        <form action="/add-to-cart/<%= product.id %>" method="POST">
-        <div class="products-grid" id="productsGrid">        </div>                <input type="number" name="quantity" value="1" min="1" class="quantity-input">
-            <% products.forEach(function(product) { %>roup">="submit" class="btn btn-primary">Add to Cart</button>
-                <div class="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>"> method="POST">
-                    <div class="product-info">lue="1" min="1" class="quantity-input">
-                        <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>primary">Add to Cart</button>
-                        <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">
-                        <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>                    </div>        </div>
-                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-                    </div>
-                    <div class="button-group">
-                        <form action="/add-to-cart/<%= product.id %>" method="POST">rch and sort functionality
-                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">tsGrid');
-                            <button type="submit" class="btn btn-primary">Add to Cart</button>
-                        </form>rtSelect');
-                    </div>yId('productsGrid');tById('categoryFilter');
-                </div>earchInput = document.getElementById('searchInput');roducts = Array.from(productsGrid.children);
-            <% }); %>        const sortSelect = document.getElementById('sortSelect');
-</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display            }                });                    return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;                    const priceB = parseFloat(b.dataset.price);                    const priceA = parseFloat(a.dataset.price);                filtered.sort((a, b) => {            if(sortValue) {            // Sort products
-    </div>erCase();
-
-    <script>ase();
-        // Search and sort functionality
-        const productsGrid = document.getElementById('productsGrid');
-        const searchInput = document.getElementById('searchInput');er productsst name = card.dataset.name;
-        const sortSelect = document.getElementById('sortSelect');onst filtered = products.filter(card => {   const category = card.dataset.category;
-        const products = Array.from(productsGrid.children);                const name = card.dataset.name;                const matchesSearch = name.includes(searchTerm);
-ncludes(searchTerm);Category = !categoryValue || category === categoryValue;
-        function updateDisplay() {
-            const searchTerm = searchInput.value.toLowerCase();
-    /* Responsive Design */ = sortSelect.value;   // Sort products
-    @media (max-width: 768px) {Value) {            if(sortValue) {
-        .nav-content {products
-            flex-direction: column;ts.filter(card => {););   flex-direction: column;
-            gap: 1rem;name = card.dataset.name;       const priceB = parseFloat(b.dataset.price);       const priceB = parseFloat(b.dataset.price);            gap: 1rem;
-        }       return name.includes(searchTerm);             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;
-            });         });         });
-        .nav-links {     }
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .controls {
-            flex-direction: column;
-        }
-        
-        .search-input, .sort-select {
-            width: 100%;
-        }
-        
-        .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            padding: 0.5rem;
-        }
-        
-        .product-card {
-            padding: 1rem;
-        }
-        
-        .hero h1 {
-            font-size: 1.5rem;
-        }
-        
-        .btn, .btn-primary {
-            min-height: 44px; /* Apple's recommended touch target */
-            font-size: 1rem;
-        }
-        
-        .quantity-input {
-            min-height: 44px;
-            font-size: 1rem;
-        }
-        
-        input, select {
-            min-height: 44px;
-            font-size: 16px; /* Prevents zoom on iOS */
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .products-grid {
-            grid-template-columns: 1fr;    categoryFilter.addEventListener('change', updateDisplay);        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display            }                });                    return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;                    const priceB = parseFloat(b.dataset.price);                    const priceA = parseFloat(a.dataset.price);                filtered.sort((a, b) => {            if(sortValue) {            // Sort products        .controls {
-        }
-        
-        .container {
-            width: 95%;
-        }
-        
-        .logo {
-            font-size: 1.1rem;
-        }emplate-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }p: 1rem;
-</style>  padding: 0.5rem;
-</head>      <a href="/cart">Cart</a>       }
-<body>            <a href="/checkout/orders">My Orders</a>
-    <nav class="nav">logout">Logout</a>
-        <div class="container">
-            <div class="nav-content">
-                <div class="logo">🛒 FreshMarket</div>
-                <div class="nav-links">.hero h1 {
-                    <a href="/shopping">Shop</a>
-                    <a href="/cart" class="cart-badge">🛒 Cart</a>iner">on value="beverages">Beverages</option>
-                    <a href="/checkout/orders">My Orders</a>lass="hero">select>
-                    <a href="/logout">Logout</a>            <h1>Welcome, <%= user.username %></h1>            <select id="sortSelect" class="sort-select">
-                </div></p>
+                </div>
             </div>
         </div>
     </nav>
->
+
     <div class="container">
         <div class="hero">
             <h1>Welcome, <%= user.username %></h1>
-            <p>Browse our fresh selection of products</p>lue="price-desc">Price: High to Low</option>="product-card" 
-        </div>>" 
+            <p>Browse our fresh selection of products</p>
+        </div>
         
         <div class="controls">
             <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
-            <select id="sortSelect" class="sort-select">(function(product) { %>href="/product/<%= product.id %>" ><%= product.productName %></a></h3>
-                <option value="">Sort by</option>="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>">mg src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">
-                <option value="price-asc">Price: Low to High</option>iv class="product-info">  <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>
-                <option value="price-desc">Price: High to Low</option>   <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>   <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-            </select>          <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">      </div>
-        </div>              <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>          <div class="button-group">
-                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>                        <form action="/add-to-cart/<%= product.id %>" method="POST">
-        <div class="products-grid" id="productsGrid">        </div>                <input type="number" name="quantity" value="1" min="1" class="quantity-input">
-            <% products.forEach(function(product) { %>roup">="submit" class="btn btn-primary">Add to Cart</button>
-                <div class="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>"> method="POST">ge">🛒 Cart</a>iner">on value="beverages">Beverages</option>
-                    <div class="product-info">lue="1" min="1" class="quantity-input"> <a href="/checkout/orders">My Orders</a>lass="hero">select>
-                        <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>primary">Add to Cart</button>                    <a href="/logout">Logout</a>            <h1>Welcome, <%= user.username %></h1>            <select id="sortSelect" class="sort-select">
-                        <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">div></p>
-                        <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>                    </div>        </div>
+            <select id="sortSelect" class="sort-select">
+                <option value="">Sort by</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+            </select>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+            <% products.forEach(function(product) { %>
+                <div class="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>">
+                    <div class="product-info">
+                        <h3><a href="/product/<%= product.id %>" class="product-title"><%= product.productName %></a></h3>
+                        <img src="images/<%= product.image %>" width="100%" class="product-img">
+                        <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>
                         <p class="product-stock">Available: <%= product.quantity %> in stock</p>
                     </div>
                     <div class="button-group">
-                        <form action="/add-to-cart/<%= product.id %>" method="POST">rch and sort functionality
-                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">tsGrid');
-                            <button type="submit" class="btn btn-primary">Add to Cart</button>username %></h1>
-                        </form>rtSelect');rice-desc">Price: High to Low</option>="product-card" 
-                    </div>yId('productsGrid');tById('categoryFilter');
-                </div>earchInput = document.getElementById('searchInput');roducts = Array.from(productsGrid.children);
-            <% }); %>        const sortSelect = document.getElementById('sortSelect');
-        </div>ay.from(productsGrid.children);ay() {rch-input" placeholder="Search products...">
-    </div>erCase();3>
-g-fluid product-img">
-    <script>ase();c">Price: Low to High</option>iv class="product-info">  <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>
-        // Search and sort functionalitylue="price-desc">Price: High to Low</option>   <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>   <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-        const productsGrid = document.getElementById('productsGrid');            </select>          <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">      </div>
-        const searchInput = document.getElementById('searchInput');er productsst name = card.dataset.name;        </div>              <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>          <div class="button-group">
-        const sortSelect = document.getElementById('sortSelect');onst filtered = products.filter(card => {   const category = card.dataset.category;                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>                        <form action="/add-to-cart/<%= product.id %>" method="POST">
-        const products = Array.from(productsGrid.children);                const name = card.dataset.name;                const matchesSearch = name.includes(searchTerm);        <div class="products-grid" id="productsGrid">        </div>                <input type="number" name="quantity" value="1" min="1" class="quantity-input">
-ncludes(searchTerm);Category = !categoryValue || category === categoryValue;            <% products.forEach(function(product) { %>roup">="submit" class="btn btn-primary">Add to Cart</button>
-        function updateDisplay() {                <div class="product-card" data-name="<%= product.productName.toLowerCase() %>" data-price="<%= product.price %>"> method="POST">
-            const searchTerm = searchInput.value.toLowerCase();                    <div class="product-info">lue="1" min="1" class="quantity-input">
-            const sortValue = sortSelect.value;   // Sort products                        <h3><a href="/product/<%= product.id %>" ><%= product.productName %></a></h3>primary">Add to Cart</button>
-                        if(sortValue) {            if(sortValue) {                        <img src = "images/<%= product.image %>" width="100%" class="img-fluid product-img">
-            // Filter products                        <p class="product-price">Price: $<%= product.price.toFixed(2) %></p>                    </div>        </div>
-            const filtered = products.filter(card => {););                        <p class="product-stock">Available: <%= product.quantity %> in stock</p>
-                const name = card.dataset.name;       const priceB = parseFloat(b.dataset.price);       const priceB = parseFloat(b.dataset.price);                    </div>
-                return name.includes(searchTerm);             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;                    <div class="button-group">
-            });         });         });                        <form action="/add-to-cart/<%= product.id %>" method="POST">rch and sort functionality
-            }            }                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">tsGrid');
+                        <form action="/add-to-cart/<%= product.id %>" method="POST">
+                            <input type="number" name="quantity" value="1" min="1" class="quantity-input">
                             <button type="submit" class="btn btn-primary">Add to Cart</button>
-                        </form>rtSelect');
-                    </div>yId('productsGrid');tById('categoryFilter');
-                </div>earchInput = document.getElementById('searchInput');roducts = Array.from(productsGrid.children);
-            <% }); %>        const sortSelect = document.getElementById('sortSelect');
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
 
-    </div>erCase();
-
-    <script>ase();
-        // Search and sort functionality
+    <script>
         const productsGrid = document.getElementById('productsGrid');
-        const searchInput = document.getElementById('searchInput');er productsst name = card.dataset.name;
-        const sortSelect = document.getElementById('sortSelect');onst filtered = products.filter(card => {   const category = card.dataset.category;
-        const products = Array.from(productsGrid.children);                const name = card.dataset.name;                const matchesSearch = name.includes(searchTerm);
-ncludes(searchTerm);Category = !categoryValue || category === categoryValue;
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const products = Array.from(productsGrid.children);
+
         function updateDisplay() {
             const searchTerm = searchInput.value.toLowerCase();
+            const sortValue = sortSelect.value;
+            
+            const filtered = products.filter(card => {
+                const name = card.dataset.name;
+                return name.includes(searchTerm);
+            });
 
-           if(sortValue) {
+            if(sortValue) {
+                filtered.sort((a, b) => {
+                    const priceA = parseFloat(a.dataset.price);
+                    const priceB = parseFloat(b.dataset.price);
+                    return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;
+                });
+            }
 
-</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display            }                });                    return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;                    const priceB = parseFloat(b.dataset.price);                    const priceA = parseFloat(a.dataset.price);                filtered.sort((a, b) => {            if(sortValue) {            // Sort products   const filtered = products.filter(card => {););
-                const name = card.dataset.name;       const priceB = parseFloat(b.dataset.price);       const priceB = parseFloat(b.dataset.price);
- return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;             return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</html></body>    </script>        categoryFilter.addEventListener('change', updateDisplay);        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display            }                });                    return sortValue === 'price-asc' ? priceA - priceB : priceB - priceA;                    const priceB = parseFloat(b.dataset.price);                    const priceA = parseFloat(a.dataset.price);                filtered.sort((a, b) => {            if(sortValue) {            // Sort products
-
-
-
-
-
-
-
-
-
-
-
-</html></body>    </script>        sortSelect.addEventListener('change', updateDisplay);        searchInput.addEventListener('input', updateDisplay);        }            filtered.forEach(card => productsGrid.appendChild(card));            productsGrid.innerHTML = '';            // Update display
             productsGrid.innerHTML = '';
             filtered.forEach(card => productsGrid.appendChild(card));
         }
 
         searchInput.addEventListener('input', updateDisplay);
         sortSelect.addEventListener('change', updateDisplay);
-        categoryFilter.addEventListener('change', updateDisplay);
     </script>
 </body>
 </html>

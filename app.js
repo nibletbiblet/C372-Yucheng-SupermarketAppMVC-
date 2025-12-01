@@ -227,8 +227,12 @@ app.get('/shopping', checkAuthenticated, (req, res) => {
     // Fetch data from MySQL
     connection.query('SELECT * FROM products', (error, results) => {
         if (error) throw error;
-        res.render('shopping', { user: req.session.user, products: results });
-      });
+        res.render('shopping', { 
+            user: req.session.user, 
+            products: results,
+            cart: req.session.cart || []  // Add this line
+        });
+    });
 });
 
 app.post('/add-to-cart/:id', checkAuthenticated, (req, res) => {
