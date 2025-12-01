@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
+const connection = require('../config/database');
 
 const checkoutController = {
     checkoutPage: (req, res) => {
@@ -39,22 +40,21 @@ const checkoutController = {
             return res.redirect('/cart');
         }
 
-        // Calculate total
         let totalPrice = 0;
         cart.forEach(item => {
             totalPrice += item.price * item.quantity;
         });
 
-        // Create order
         Order.createOrder(user.id, totalPrice, (err, orderId) => {
             if (err) {
                 console.error('Error creating order:', err);
-                req.flash('error', 'Failed to place order');
+                req.flash('error', 'Failed to place order. Please try again.');
                 return res.redirect('/checkout');
             }
 
-            // Add order items
             let itemsProcessed = 0;
+            const itemCount = cart.length;
+
             cart.forEach(item => {
                 const subtotal = item.price * item.quantity;
                 OrderItem.addItem(orderId, item.id, item.quantity, item.price, subtotal, (err) => {
@@ -63,11 +63,15 @@ const checkoutController = {
                     }
                     itemsProcessed++;
 
-                    if (itemsProcessed === cart.length) {
-                        // Clear cart
+                    if (itemsProcessed === itemCount) {
                         req.session.cart = [];
-                        // Redirect to success page
-                        res.redirect('/checkout/success/' + orderId);
+                        req.session.save((saveErr) => {
+                            if (saveErr) {
+                                console.error('Session save error:', saveErr);
+                            }
+                            console.log('Order placed successfully. Order ID:', orderId);
+                            res.redirect('/checkout/success/' + orderId);
+                        });
                     }
                 });
             });
@@ -78,20 +82,34 @@ const checkoutController = {
         const orderId = req.params.orderId;
         const user = req.session.user;
 
+        if (!user) {
+            return res.redirect('/login');
+        }
+
         Order.getOrderById(orderId, (err, order) => {
             if (err || !order) {
+                console.error('Order not found:', err);
+                req.flash('error', 'Order not found');
+                return res.redirect('/shopping');
+            }
+
+            if (order.user_id !== user.id) {
+                req.flash('error', 'Access denied');
                 return res.redirect('/shopping');
             }
 
             OrderItem.getItemsByOrderId(orderId, (err, items) => {
                 if (err) {
+                    console.error('Error fetching order items:', err);
                     items = [];
                 }
 
                 res.render('orderSuccess', { 
                     user, 
                     order,
-                    items
+                    items,
+                    messages: req.flash('success'),
+                    errors: req.flash('error')
                 });
             });
         });
@@ -117,7 +135,6 @@ const checkoutController = {
 
             console.log('Order found:', order);
 
-            // Verify order belongs to user
             if (order.user_id !== user.id) {
                 req.flash('error', 'Access denied');
                 return res.redirect('/shopping');
@@ -157,7 +174,9 @@ const checkoutController = {
 
             res.render('myOrders', { 
                 user, 
-                orders
+                orders,
+                messages: req.flash('success'),
+                errors: req.flash('error')
             });
         });
     }

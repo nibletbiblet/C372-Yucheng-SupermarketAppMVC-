@@ -43,6 +43,36 @@
         .alert { padding:1rem; border-radius:.5rem; margin-bottom:1rem; }
         .alert-success { background:#dcfce7; color:#065f46; }
         .alert-error { background:#fef2f2; color:#991b1b; }
+        
+        /* Responsive Cart */
+        @media (max-width: 768px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-item {
+                grid-template-columns: 80px 1fr;
+                gap: 0.75rem;
+            }
+            
+            .quantity-controls {
+                grid-column: 1 / -1;
+                justify-content: flex-start;
+                margin-top: 0.5rem;
+            }
+            
+            .item-total {
+                grid-column: 1 / -1;
+                text-align: right;
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
+                border-top: 1px solid #eee;
+            }
+            
+            .cart-summary {
+                position: static;
+            }
+        }
     </style>
 </head>
 <body>
@@ -105,19 +135,25 @@
                 <div class="cart-summary">
                     <h3 style="margin-bottom:1rem">Order Summary</h3>
                     <div class="summary-row">
-                        <span>Subtotal</span>
+                        <span>Subtotal (<%= cart.length %> items)</span>
                         <span>$<%= total.toFixed(2) %></span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping</span>
-                        <span>Free</span>
+                        <span style="color:#10b981">Free</span>
                     </div>
                     <div class="summary-row">
-                        <span>Total</span>
-                        <span>$<%= total.toFixed(2) %></span>
+                        <span>GST (8%)</span>
+                        <span>$<%= (total * 0.08).toFixed(2) %></span>
                     </div>
-                    <a href="/checkout" class="btn btn-primary">Proceed to Checkout</a>
-                    <a href="/shopping" class="btn btn-secondary">Continue Shopping</a>
+                    <div class="summary-row" style="border-top:2px solid #667eea;padding-top:1rem;margin-top:1rem;font-size:1.2rem;font-weight:600;color:#667eea">
+                        <span>Total</span>
+                        <span>$<%= (total * 1.08).toFixed(2) %></span>
+                    </div>
+                    <button class="checkout-btn">Proceed to Checkout</button>
+                    <p style="font-size:12px;color:#666;margin-top:1rem;text-align:center">
+                        🔒 Secure Checkout
+                    </p>
                 </div>
             <% } %>
         </div>

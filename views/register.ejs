@@ -53,6 +53,27 @@
 		.requirement:not(.met)::before {
 			content: '○';
 		}
+
+		/* Responsive Form */
+		@media (max-width: 680px) {
+			.form-grid {
+				grid-template-columns: 1fr;
+			}
+			
+			.card {
+				padding: 1.5rem;
+				margin: 1rem 0;
+			}
+			
+			h1 {
+				font-size: 1.5rem;
+			}
+			
+			.password-requirements {
+				font-size: 11px;
+				padding: 10px;
+			}
+		}
 	</style>
 </head>
 <body>

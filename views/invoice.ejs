@@ -28,10 +28,53 @@
         .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
         .btn-primary:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(102,126,234,.3); }
         .btn-secondary { background:#eef2ff; color:#667eea; }
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .invoice-container {
+                max-width: 100%;
+            }
+            
+            .invoice-info {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .invoice-items {
+                padding: 1rem;
+                overflow-x: auto;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+            
+            .actions {
+                padding: 1rem;
+            }
+            
+            .btn {
+                display: block;
+                width: 100%;
+                margin: 0.25rem 0;
+            }
+        }
+        
         @media print { 
             .actions, .btn { display:none !important; } 
             body { background:#fff; padding:0; }
             .invoice-container { box-shadow:none; }
+            @page {
+                size: A4;
+                margin: 1cm;
+            }
         }
     </style>
 </head>

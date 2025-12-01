@@ -45,7 +45,17 @@
             </div>
         </div>
 
-        <p style="color:#666;margin-bottom:1.5rem">📧 Invoice sent to your email!</p>
+        <p style="color:#666;margin-bottom:1.5rem">
+            📧 <strong>Order confirmation sent to:</strong> <%= user.email %>
+        </p>
+
+        <div style="background:#f0fdf4;padding:1rem;border-radius:.5rem;margin:1rem 0;border-left:4px solid #10b981">
+            <p style="color:#065f46;font-size:.9rem">
+                ✓ Invoice has been sent to your email<br>
+                ✓ Order confirmation number: #<%= order.order_id %><br>
+                ✓ Estimated delivery: 2-3 business days
+            </p>
+        </div>
 
         <div>
             <a href="/checkout/invoice/<%= order.order_id %>" class="btn btn-primary">📄 View Invoice</a>
