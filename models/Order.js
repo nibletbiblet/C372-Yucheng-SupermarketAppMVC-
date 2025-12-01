@@ -13,6 +13,10 @@ class Order {
         const sql = 'SELECT * FROM orders WHERE order_id = ?';
         connection.query(sql, [orderId], (err, results) => {
             if (err) return callback(err);
+            if (results.length > 0) {
+                // Convert total_price to number
+                results[0].total_price = parseFloat(results[0].total_price);
+            }
             callback(null, results[0]);
         });
     }
@@ -29,6 +33,10 @@ class Order {
         `;
         connection.query(sql, [userId], (err, results) => {
             if (err) return callback(err);
+            // Convert total_price to number for each order
+            results.forEach(order => {
+                order.total_price = parseFloat(order.total_price);
+            });
             callback(null, results);
         });
     }

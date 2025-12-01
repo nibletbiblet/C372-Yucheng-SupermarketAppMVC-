@@ -97,6 +97,50 @@ const checkoutController = {
         });
     },
 
+    viewInvoice: (req, res) => {
+        const orderId = req.params.orderId;
+        const user = req.session.user;
+
+        if (!user) {
+            req.flash('error', 'Please login to view invoice');
+            return res.redirect('/login');
+        }
+
+        console.log('Fetching invoice for order:', orderId, 'user:', user.id);
+
+        Order.getOrderById(orderId, (err, order) => {
+            if (err || !order) {
+                console.error('Order not found:', err);
+                req.flash('error', 'Invoice not found');
+                return res.redirect('/shopping');
+            }
+
+            console.log('Order found:', order);
+
+            // Verify order belongs to user
+            if (order.user_id !== user.id) {
+                req.flash('error', 'Access denied');
+                return res.redirect('/shopping');
+            }
+
+            OrderItem.getItemsByOrderId(orderId, (err, items) => {
+                if (err) {
+                    console.error('Error fetching items:', err);
+                    items = [];
+                }
+
+                console.log('Order items:', items);
+
+                res.render('invoice', { 
+                    user, 
+                    order,
+                    items,
+                    invoiceNumber: `INV-${String(orderId).padStart(6, '0')}`
+                });
+            });
+        });
+    },
+
     myOrders: (req, res) => {
         const user = req.session.user;
 

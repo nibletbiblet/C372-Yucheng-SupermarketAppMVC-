@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #<%= invoiceNumber %> - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#f5f7ff; font-family:'Segoe UI',Roboto,Arial; padding:2rem; }
+        .invoice-container { max-width:800px; margin:0 auto; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+        .invoice-header { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:2rem; }
+        .invoice-header h1 { font-size:1.5rem; margin-bottom:.5rem; }
+        .invoice-info { display:grid; grid-template-columns:1fr 1fr; gap:2rem; padding:2rem; border-bottom:2px solid #eee; }
+        .info-section h3 { margin-bottom:.5rem; color:#667eea; font-size:1rem; }
+        .info-section p { color:#666; line-height:1.6; font-size:.9rem; }
+        .invoice-items { padding:2rem; }
+        table { width:100%; border-collapse:collapse; }
+        th { background:#f8fafc; padding:1rem; text-align:left; font-weight:600; border-bottom:2px solid #e2e8f0; font-size:.9rem; }
+        td { padding:1rem; border-bottom:1px solid #eee; font-size:.9rem; }
+        .item-name { font-weight:600; color:#333; }
+        .text-right { text-align:right; }
+        .invoice-summary { padding:2rem; background:#f8fafc; }
+        .summary-row { display:flex; justify-content:space-between; padding:.5rem 0; font-size:.95rem; }
+        .summary-total { border-top:2px solid #667eea; padding-top:1rem; margin-top:1rem; font-size:1.2rem; font-weight:600; color:#667eea; }
+        .invoice-footer { padding:2rem; text-align:center; color:#666; border-top:1px solid #eee; font-size:.9rem; }
+        .actions { padding:2rem; text-align:center; }
+        .btn { display:inline-block; padding:.8rem 2rem; margin:.5rem; border-radius:.5rem; text-decoration:none; font-weight:600; transition:all .2s; border:none; cursor:pointer; font-size:.9rem; }
+        .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(102,126,234,.3); }
+        .btn-secondary { background:#eef2ff; color:#667eea; }
+        @media print { 
+            .actions, .btn { display:none !important; } 
+            body { background:#fff; padding:0; }
+            .invoice-container { box-shadow:none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <h1>🛒 FreshMarket</h1>
+            <p>Invoice #<%= invoiceNumber %></p>
+        </div>
+
+        <div class="invoice-info">
+            <div class="info-section">
+                <h3>Bill To:</h3>
+                <p>
+                    <strong><%= user.username %></strong><br>
+                    <%= user.email %><br>
+                    <%= user.address %><br>
+                    <%= user.contact %>
+                </p>
+            </div>
+            <div class="info-section">
+                <h3>Invoice Details:</h3>
+                <p>
+                    <strong>Invoice Number:</strong> <%= invoiceNumber %><br>
+                    <strong>Order ID:</strong> <%= order.order_id %><br>
+                    <strong>Date:</strong> <%= new Date(order.created_at).toLocaleDateString() %><br>
+                    <strong>Time:</strong> <%= new Date(order.created_at).toLocaleTimeString() %>
+                </p>
+            </div>
+        </div>
+
+        <div class="invoice-items">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-right">Price</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% items.forEach(function(item) { %>
+                        <tr>
+                            <td class="item-name"><%= item.productName %></td>
+                            <td class="text-right">$<%= parseFloat(item.price).toFixed(2) %></td>
+                            <td class="text-right"><%= item.quantity %></td>
+                            <td class="text-right">$<%= parseFloat(item.subtotal).toFixed(2) %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invoice-summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>$<%= parseFloat(order.total_price).toFixed(2) %></span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>Free</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax:</span>
+                <span>$0.00</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total Amount:</span>
+                <span>$<%= parseFloat(order.total_price).toFixed(2) %></span>
+            </div>
+        </div>
+
+        <div class="invoice-footer">
+            <p><strong>Thank you for shopping with FreshMarket!</strong></p>
+            <p style="margin-top:.5rem">For questions, contact us at support@freshmarket.com | +65 1234 5678</p>
+            <p style="margin-top:.5rem;font-size:.85rem;color:#999">This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+
+        <div class="actions">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Invoice</button>
+            <a href="/shopping" class="btn btn-secondary">Continue Shopping</a>
+            <a href="/checkout/orders" class="btn btn-secondary">My Orders</a>
+        </div>
+    </div>
+</body>
+</html>

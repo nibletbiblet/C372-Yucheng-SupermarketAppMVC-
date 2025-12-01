@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
     <title>My Orders - FreshMarket</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -58,7 +59,7 @@
                                 <strong>Order #<%= order.order_id %></strong>
                                 <div class="order-date"><%= new Date(order.created_at).toLocaleDateString() %></div>
                             </div>
-                            <div class="order-total">$<%= parseFloat(order.total_price).toFixed(2) %></div>
+                            <div class="order-total">$<%= Number(order.total_price).toFixed(2) %></div>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center">
                             <p style="color:#666"><%= order.item_count || 0 %> item(s)</p>
