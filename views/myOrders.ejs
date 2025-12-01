@@ -21,6 +21,8 @@
         .order-date { color:#666; font-size:.9rem; }
         .order-total { font-weight:600; color:#667eea; font-size:1.1rem; }
         .empty { text-align:center; padding:3rem; background:#fff; border-radius:1rem; }
+        .btn { padding:.5rem 1rem; background:#667eea; color:#fff; border-radius:.5rem; text-decoration:none; font-size:.9rem; transition:all .2s; }
+        .btn:hover { background:#5568d3; transform:translateY(-2px); }
     </style>
 </head>
 <body>
@@ -46,7 +48,7 @@
                 <div class="empty">
                     <h3>No orders yet</h3>
                     <p style="color:#666;margin:1rem 0">Start shopping to place your first order</p>
-                    <a href="/shopping" style="display:inline-block;padding:1rem 2rem;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:.5rem;text-decoration:none;">Shop Now</a>
+                    <a href="/shopping" class="btn">Shop Now</a>
                 </div>
             <% } else { %>
                 <% orders.forEach(function(order) { %>
@@ -56,10 +58,11 @@
                                 <strong>Order #<%= order.order_id %></strong>
                                 <div class="order-date"><%= new Date(order.created_at).toLocaleDateString() %></div>
                             </div>
-                            <div class="order-total">$<%= order.total_price.toFixed(2) %></div>
+                            <div class="order-total">$<%= parseFloat(order.total_price).toFixed(2) %></div>
                         </div>
-                        <div>
-                            <p style="color:#666"><%= order.item_count %> item(s)</p>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <p style="color:#666"><%= order.item_count || 0 %> item(s)</p>
+                            <a href="/checkout/invoice/<%= order.order_id %>" class="btn">View Invoice</a>
                         </div>
                     </div>
                 <% }); %>
