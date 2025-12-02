@@ -416,5 +416,20 @@ app.get('/deleteProduct/:id', (req, res) => {
     });
 });
 
+app.get('/about', (req, res) => {
+    res.render('about', { user: req.session.user });
+});
+
+app.get('/contact', (req, res) => {
+    res.render('contact', { user: req.session.user });
+});
+
+app.post('/contact', (req, res) => {
+    const { name, email, subject, message } = req.body;
+    console.log('Contact form submission:', { name, email, subject, message });
+    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
+    res.redirect('/contact');
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
