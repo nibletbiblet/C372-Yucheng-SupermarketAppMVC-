@@ -353,24 +353,20 @@ app.get('/addProduct', checkAuthenticated, checkAdmin, (req, res) => {
 });
 
 app.post('/addProduct', upload.single('image'),  (req, res) => {
-    // Extract product data from the request body
-    const { name, quantity, price} = req.body;
+    const { name, quantity, price, category } = req.body;
     let image;
     if (req.file) {
-        image = req.file.filename; // Save only the filename
+        image = req.file.filename;
     } else {
         image = null;
     }
 
-    const sql = 'INSERT INTO products (productName, quantity, price, image) VALUES (?, ?, ?, ?)';
-    // Insert the new product into the database
-    connection.query(sql , [name, quantity, price, image], (error, results) => {
+    const sql = 'INSERT INTO products (productName, quantity, price, category, image) VALUES (?, ?, ?, ?, ?)';
+    connection.query(sql , [name, quantity, price, category, image], (error, results) => {
         if (error) {
-            // Handle any error that occurs during the database operation
             console.error("Error adding product:", error);
             res.status(500).send('Error adding product');
         } else {
-            // Send a success response
             res.redirect('/inventory');
         }
     });
@@ -380,16 +376,12 @@ app.get('/updateProduct/:id',checkAuthenticated, checkAdmin, (req,res) => {
     const productId = req.params.id;
     const sql = 'SELECT * FROM products WHERE id = ?';
 
-    // Fetch data from MySQL based on the product ID
     connection.query(sql , [productId], (error, results) => {
         if (error) throw error;
 
-        // Check if any product with the given ID was found
         if (results.length > 0) {
-            // Render HTML page with the product data
             res.render('updateProduct', { product: results[0] });
         } else {
-            // If no product with the given ID was found, render a 404 page or handle it accordingly
             res.status(404).send('Product not found');
         }
     });
@@ -397,22 +389,18 @@ app.get('/updateProduct/:id',checkAuthenticated, checkAdmin, (req,res) => {
 
 app.post('/updateProduct/:id', upload.single('image'), (req, res) => {
     const productId = req.params.id;
-    // Extract product data from the request body
-    const { name, quantity, price } = req.body;
-    let image  = req.body.currentImage; //retrieve current image filename
-    if (req.file) { //if new image is uploaded
-        image = req.file.filename; // set image to be new image filename
+    const { name, quantity, price, category } = req.body;
+    let image  = req.body.currentImage;
+    if (req.file) {
+        image = req.file.filename;
     } 
 
-    const sql = 'UPDATE products SET productName = ? , quantity = ?, price = ?, image =? WHERE id = ?';
-    // Insert the new product into the database
-    connection.query(sql, [name, quantity, price, image, productId], (error, results) => {
+    const sql = 'UPDATE products SET productName = ?, quantity = ?, price = ?, category = ?, image = ? WHERE id = ?';
+    connection.query(sql, [name, quantity, price, category, image, productId], (error, results) => {
         if (error) {
-            // Handle any error that occurs during the database operation
             console.error("Error updating product:", error);
             res.status(500).send('Error updating product');
         } else {
-            // Send a success response
             res.redirect('/inventory');
         }
     });
@@ -421,7 +409,6 @@ app.post('/updateProduct/:id', upload.single('image'), (req, res) => {
 app.get('/deleteProduct/:id', (req, res) => {
     const productId = req.params.id;
 
-    // First check if product is in any orders
     connection.query(
         'SELECT COUNT(*) as orderCount FROM order_items WHERE product_id = ?',
         [productId],
@@ -434,12 +421,10 @@ app.get('/deleteProduct/:id', (req, res) => {
             const orderCount = results[0].orderCount;
 
             if (orderCount > 0) {
-                // Product has been ordered, cannot delete
                 req.flash('error', `Cannot delete product. It has been ordered ${orderCount} time(s). Consider marking it as out of stock instead.`);
                 return res.redirect('/inventory');
             }
 
-            // Safe to delete - no orders reference this product
             connection.query('DELETE FROM products WHERE id = ?', [productId], (error, results) => {
                 if (error) {
                     console.error("Error deleting product:", error);

@@ -92,6 +92,19 @@
 						</div>
 
 						<div class="form-row">
+							<label for="category">Category: <span style="color:red">*</span></label>
+							<select id="category" name="category" required>
+								<option value="">-- Select Category --</option>
+								<option value="fruits">🍎 Fruits</option>
+								<option value="vegetables">🥬 Vegetables</option>
+								<option value="dairy">🥛 Dairy</option>
+								<option value="meat">🍖 Meat & Seafood</option>
+								<option value="bakery">🍞 Bakery</option>
+								<option value="grocery">🛒 Grocery (Other)</option>
+							</select>
+						</div>
+
+						<div class="form-row">
 							<label for="image">Product Image</label>
 							<input id="image" name="image" type="file" accept="image/*">
 							<div class="note">Upload a clear image of the product (JPG, PNG)</div>
