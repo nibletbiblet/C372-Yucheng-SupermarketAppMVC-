@@ -3,337 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreshMarket - Home</title>
+    <title>FreshMarket - Fresh Groceries Delivered</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background: url('/images/backgrounds/landing.jpg') no-repeat center center fixed;
             background-size: cover;
-            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
         
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.3);  /* Reduced from 0.88 to 0.3 */
-            z-index: 0;
-        }
-        
-        .nav, main, footer {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .bg-animation {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 0;
-        }
-        
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.3;
-            pointer-events: none;
-        }
-        
         .nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 2px 10px rgba(0,0,0,.08);
-        }
-        
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(255,255,255,0.98);
             padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+        .container { width:90%; max-width:1200px; margin:0 auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.8rem; font-weight:900; color:#667eea; display:flex; align-items:center; gap:.5rem; }
+        .nav-links { display:flex; gap:1.5rem; align-items:center; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .3s; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        .btn-login { background:#667eea; color:#fff; padding:.7rem 1.5rem; }
         
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .nav-links a {
-            text-decoration: none;
-            color: #444;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-        }
-        
-        .nav-links a.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .nav-links a:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .hero-section {
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(102,126,234,0.95), rgba(118,75,162,0.95));
+            padding: 5rem 0;
             text-align: center;
-            padding: 4rem 2rem;
-            color: #1a1a1a;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            margin-top: 0.5rem;
-            color: #666;
-        }
-        
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin: 3rem 0;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .feature-card {
-            background: white;
+            color: white;
+            margin: 2rem 0;
             border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; animation: fadeInDown 1s; }
+        .hero p { font-size: 1.3rem; margin-bottom: 2rem; opacity: 0.95; }
+        .hero-btns { display: flex; gap: 1rem; justify-content: center; }
+        .btn-hero { padding: 1rem 2.5rem; border: none; border-radius: .7rem; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all .3s; text-decoration: none; display: inline-block; }
+        .btn-hero-primary { background: #fff; color: #667eea; }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .btn-hero-secondary { background: transparent; color: #fff; border: 2px solid #fff; }
+        .btn-hero-secondary:hover { background: #fff; color: #667eea; }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Categories Section */
+        .section { padding: 3rem 0; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 2rem; color: #333; }
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .category-card {
+            background: rgba(255,255,255,0.95);
             padding: 2rem;
+            border-radius: 1rem;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
             cursor: pointer;
-            position: relative;
-            will-change: transform, box-shadow;
-            z-index: 1;
+            transition: all .3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        
-        .feature-card:hover {
-            transform: scale(1.07) rotate(-2deg);
-            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.18);
-            background: linear-gradient(135deg, #e3e8ff 0%, #f6f8fb 100%);
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
         }
+        .category-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .category-card h3 { color: #667eea; margin-bottom: .5rem; }
         
-        .feature-card:active {
-            transform: scale(0.97) rotate(1deg);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
+        /* Features Section */
+        .features {
+            background: rgba(255,255,255,0.95);
+            padding: 4rem 2rem;
+            border-radius: 1rem;
+            margin: 3rem 0;
         }
-        
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            transition: transform 0.4s cubic-bezier(.68,-0.55,.27,1.55);
-            animation: bounce 1.5s infinite;
-        }
-        
-        .feature-card:hover .feature-icon {
-            transform: scale(1.3) rotate(10deg);
-            animation: rotate 1s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0);}
-            50% { transform: translateY(-12px);}
-        }
-        
-        @keyframes rotate {
-            0% { transform: scale(1.3) rotate(0deg);}
-            50% { transform: scale(1.3) rotate(20deg);}
-            100% { transform: scale(1.3) rotate(0deg);}
-        }
-        
-        .feature-card {
-            opacity: 0;
-            transform: translateY(40px) scale(0.95);
-        }
-        
-        .feature-card.visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            transition: opacity 0.7s cubic-bezier(.68,-0.55,.27,1.55), transform 0.7s cubic-bezier(.68,-0.55,.27,1.55);
-        }
-        
-        .footer {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 2rem 0;
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .feature-item {
             text-align: center;
-            position: relative;
-            z-index: 10;
+            padding: 2rem;
         }
+        .feature-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .feature-item h3 { color: #667eea; margin-bottom: .5rem; }
         
-        .footer-links {
-            margin-top: 1rem;
+        /* Footer */
+        .footer {
+            background: rgba(51,51,51,0.95);
+            color: #fff;
+            padding: 3rem 0 1rem;
+            margin-top: 3rem;
         }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .footer h4 { margin-bottom: 1rem; color: #667eea; }
+        .footer a { color: #ccc; text-decoration: none; display: block; margin: .5rem 0; }
+        .footer a:hover { color: #fff; }
+        .footer-bottom { text-align: center; padding-top: 2rem; border-top: 1px solid #555; color: #999; }
         
-        .footer-links a {
-            margin: 0 1rem;
-            text-decoration: none;
-            color: #333;
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .hero-btns { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-animation" id="bgAnimation"></div>
-
     <nav class="nav">
         <div class="container">
             <div class="nav-content">
                 <div class="logo">🛒 FreshMarket</div>
                 <div class="nav-links">
-                    <a href="/" class="active">Home</a>
-                    <a href="/shopping">Shop</a>
-                    <a href="/inventory">Inventory</a>
-                    <a href="/cart">Cart</a>
-                    <a href="/login" class="btn-primary">Login</a>
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <% if (user) { %>
+                        <% if (user.role === 'admin') { %>
+                            <a href="/inventory">Inventory</a>
+                        <% } else { %>
+                            <a href="/shopping">Shop</a>
+                        <% } %>
+                        <a href="/logout">Logout</a>
+                    <% } else { %>
+                        <a href="/login" class="btn-login">Login</a>
+                    <% } %>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="container">
-        <div class="hero-section">
-            <h1>Welcome to FreshMarket</h1>
-            <p class="subtitle">Your premium online shopping destination. Fresh products, amazing deals, and seamless experience.</p>
-        </div>
-
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🚀</div>
-                <div class="feature-title">Fast Delivery</div>
-                <p class="feature-text">Get your orders delivered within 24 hours with our express shipping service.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💎</div>
-                <div class="feature-title">Premium Quality</div>
-                <p class="feature-text">Only the finest products sourced from trusted suppliers worldwide.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <div class="feature-title">Secure Payment</div>
-                <p class="feature-text">Shop with confidence using our encrypted and secure payment gateway.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💰</div>
-                <div class="feature-title">Best Prices</div>
-                <p class="feature-text">Competitive pricing and exclusive deals for our valued customers.</p>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>🌟 Fresh Groceries Delivered to Your Door</h1>
+            <p>Quality products, unbeatable prices, delivered fresh daily</p>
+            <div class="hero-btns">
+                <a href="<%= user ? '/shopping' : '/register' %>" class="btn-hero btn-hero-primary">Start Shopping</a>
+                <a href="/about" class="btn-hero btn-hero-secondary">Learn More</a>
             </div>
         </div>
-    </main>
 
-    <footer class="footer">
+        <!-- Categories Section -->
+        <div class="section">
+            <h2 class="section-title">Shop by Category</h2>
+            <div class="categories">
+                <div class="category-card" onclick="window.location.href='/shopping'">
+                    <div class="category-icon">🍎</div>
+                    <h3>Fresh Fruits</h3>
+                    <p>Farm-fresh seasonal fruits</p>
+                </div>
+                <div class="category-card" onclick="window.location.href='/shopping'">
+                    <div class="category-icon">🥬</div>
+                    <h3>Vegetables</h3>
+                    <p>Organic & locally sourced</p>
+                </div>
+                <div class="category-card" onclick="window.location.href='/shopping'">
+                    <div class="category-icon">🥛</div>
+                    <h3>Dairy Products</h3>
+                    <p>Fresh milk, cheese & more</p>
+                </div>
+                <div class="category-card" onclick="window.location.href='/shopping'">
+                    <div class="category-icon">🍖</div>
+                    <h3>Meat & Seafood</h3>
+                    <p>Premium quality cuts</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <h2 class="section-title">Why Choose FreshMarket?</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🚚</div>
+                    <h3>Free Delivery</h3>
+                    <p>On orders over $50</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✅</div>
+                    <h3>Quality Guarantee</h3>
+                    <p>100% satisfaction or money back</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fast Checkout</h3>
+                    <p>Secure & easy payment process</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💰</div>
+                    <h3>Best Prices</h3>
+                    <p>Competitive pricing daily</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
         <div class="container">
-            <p>© 2024 FreshMarket. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="/about">About Us</a>
-                <a href="/contact">Contact</a>
-                <a href="/privacy">Privacy Policy</a>
-                <a href="/terms">Terms of Service</a>
+            <div class="footer-content">
+                <div>
+                    <h4>About FreshMarket</h4>
+                    <p>Your trusted partner for fresh groceries and everyday essentials.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <a href="/shopping">Shop</a>
+                    <a href="/about">About Us</a>
+                    <a href="/contact">Contact</a>
+                </div>
+                <div>
+                    <h4>Customer Service</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Shipping Info</a>
+                    <a href="#">Returns</a>
+                </div>
+                <div>
+                    <h4>Contact</h4>
+                    <p>📧 support@freshmarket.com</p>
+                    <p>📞 +65 1234 5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 FreshMarket. All rights reserved.</p>
             </div>
         </div>
-    </footer>
-
-    <script>
-        // Create animated background particles
-        const bgAnimation = document.getElementById('bgAnimation');
-        function createParticle() {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            const size = Math.random() * 60 + 20;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-            particle.style.animationDelay = Math.random() * 5 + 's';
-            bgAnimation.appendChild(particle);
-            setTimeout(() => particle.remove(), 20000);
-        }
-        for (let i = 0; i < 15; i++) {
-            setTimeout(createParticle, i * 500);
-        }
-        setInterval(createParticle, 2000);
-
-        // Animate feature cards in on scroll
-        document.querySelectorAll('.feature-card').forEach((card, idx) => {
-            card.style.transitionDelay = `${idx * 0.15}s`;
-        });
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.2 });
-        document.querySelectorAll('.feature-card').forEach(card => observer.observe(card));
-
-        // Add click ripple effect to feature cards
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                const ripple = document.createElement('span');
-                ripple.style.position = 'absolute';
-                ripple.style.left = e.offsetX + 'px';
-                ripple.style.top = e.offsetY + 'px';
-                ripple.style.width = ripple.style.height = '0px';
-                ripple.style.borderRadius = '50%';
-                ripple.style.background = 'rgba(102,126,234,0.15)';
-                ripple.style.transform = 'translate(-50%, -50%)';
-                ripple.style.pointerEvents = 'none';
-                ripple.style.zIndex = '2';
-                ripple.style.transition = 'width 0.5s, height 0.5s, opacity 0.7s';
-                card.appendChild(ripple);
-                setTimeout(() => {
-                    ripple.style.width = ripple.style.height = '120px';
-                    ripple.style.opacity = '0';
-                }, 10);
-                setTimeout(() => ripple.remove(), 700);
-            });
-        });
-    </script>
+    </div>
 </body>
 </html>
