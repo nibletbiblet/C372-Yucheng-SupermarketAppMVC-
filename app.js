@@ -431,5 +431,17 @@ app.post('/contact', (req, res) => {
     res.redirect('/contact');
 });
 
+app.get('/faq', (req, res) => {
+    res.render('faq', { user: req.session.user });
+});
+
+app.get('/shipping', (req, res) => {
+    res.render('shipping', { user: req.session.user });
+});
+
+app.get('/returns', (req, res) => {
+    res.render('returns', { user: req.session.user });
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

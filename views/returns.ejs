@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Returns Policy - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: url('/images/backgrounds/landing.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 0;
+        }
+        .nav, .container { position: relative; z-index: 1; }
+        .nav { background:rgba(255,255,255,.98); padding:1rem 0; box-shadow:0 2px 20px rgba(0,0,0,.1); }
+        .container { width:90%; max-width:1200px; margin:2rem auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.8rem; font-weight:900; color:#667eea; }
+        .nav-links { display:flex; gap:1.5rem; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        
+        .returns-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; margin-bottom: 1rem; font-size: 2.5rem; }
+        h2 { color: #667eea; margin: 2rem 0 1rem; }
+        p { line-height: 1.8; color: #555; margin-bottom: 1rem; }
+        .highlight-box {
+            background: #fef3c7;
+            padding: 1.5rem;
+            border-radius: .7rem;
+            margin: 1rem 0;
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">🛒 FreshMarket</div>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <% if (user) { %>
+                        <a href="/logout">Logout</a>
+                    <% } else { %>
+                        <a href="/login">Login</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="returns-section">
+            <h1>Returns & Refunds Policy</h1>
+            
+            <div class="highlight-box">
+                <strong>100% Satisfaction Guarantee</strong>
+                <p style="margin-top:.5rem">We want you to be completely happy with your purchase. If you're not satisfied, we'll make it right.</p>
+            </div>
+
+            <h2>✅ Eligible Items</h2>
+            <p>You can return or request a refund for:</p>
+            <ul style="margin-left:2rem;color:#555">
+                <li>Products that are spoiled or past expiry date</li>
+                <li>Damaged or defective items</li>
+                <li>Incorrect items delivered</li>
+                <li>Missing items from your order</li>
+            </ul>
+
+            <h2>⏱️ Return Timeframe</h2>
+            <p>Returns must be reported within <strong>24 hours</strong> of delivery for fresh products and within <strong>7 days</strong> for non-perishable items.</p>
+
+            <h2>📝 How to Return</h2>
+            <p>To initiate a return:</p>
+            <ol style="margin-left:2rem;color:#555">
+                <li>Contact our customer service at support@freshmarket.com or +65 1234 5678</li>
+                <li>Provide your order number and photos of the item</li>
+                <li>Our team will review and approve your return within 24 hours</li>
+                <li>Choose between a refund or replacement</li>
+            </ol>
+
+            <h2>💰 Refund Process</h2>
+            <p>Once approved, refunds will be processed within 3-5 business days back to your original payment method.</p>
+
+            <h2>🔄 Replacement Option</h2>
+            <p>Prefer a replacement? We'll send you a new item free of charge with your next delivery or arrange a special delivery.</p>
+
+            <h2>❌ Non-Returnable Items</h2>
+            <p>For hygiene reasons, we cannot accept returns on:</p>
+            <ul style="margin-left:2rem;color:#555">
+                <li>Opened or consumed products (unless defective)</li>
+                <li>Items not in original packaging</li>
+            </ul>
+
+            <h2>📞 Need Help?</h2>
+            <p>If you have any questions about returns, please <a href="/contact" style="color:#667eea">contact us</a>. We're here to help!</p>
+        </div>
+    </div>
+</body>
+</html>

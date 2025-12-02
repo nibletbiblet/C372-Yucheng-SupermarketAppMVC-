@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: url('/images/backgrounds/landing.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 0;
+        }
+        .nav, .container { position: relative; z-index: 1; }
+        .nav { background:rgba(255,255,255,.98); padding:1rem 0; box-shadow:0 2px 20px rgba(0,0,0,.1); }
+        .container { width:90%; max-width:1200px; margin:2rem auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.8rem; font-weight:900; color:#667eea; }
+        .nav-links { display:flex; gap:1.5rem; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        
+        .faq-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; margin-bottom: 2rem; font-size: 2.5rem; }
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 0;
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: .5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-answer {
+            color: #555;
+            line-height: 1.8;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">🛒 FreshMarket</div>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <% if (user) { %>
+                        <a href="/logout">Logout</a>
+                    <% } else { %>
+                        <a href="/login">Login</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="faq-section">
+            <h1>Frequently Asked Questions</h1>
+            
+            <div class="faq-item">
+                <div class="faq-question">❓ How do I place an order?</div>
+                <div class="faq-answer">Simply browse our products, add items to your cart, and proceed to checkout. You'll need to create an account or log in first.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">🚚 What are the delivery options?</div>
+                <div class="faq-answer">We offer free standard delivery on orders over $50. Same-day delivery is available for orders placed before 12pm. Delivery times are between 9am-6pm.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">💳 What payment methods do you accept?</div>
+                <div class="faq-answer">We accept all major credit cards, debit cards, and online payment methods including PayPal and Apple Pay.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">🔄 Can I modify or cancel my order?</div>
+                <div class="faq-answer">Orders can be modified or cancelled within 1 hour of placement. After that, please contact our customer service for assistance.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">📦 How can I track my order?</div>
+                <div class="faq-answer">Once your order is dispatched, you'll receive a tracking number via email. You can also check your order status in the "My Orders" section.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">🌿 Are your products fresh?</div>
+                <div class="faq-answer">Yes! We source our products daily from local farms and trusted suppliers. All products come with a freshness guarantee.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">💰 Do you have any promotions?</div>
+                <div class="faq-answer">Yes! Check our homepage regularly for weekly deals and special promotions. Sign up for our newsletter to get exclusive offers.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">📞 How do I contact customer service?</div>
+                <div class="faq-answer">You can reach us at support@freshmarket.com or call +65 1234 5678 (Mon-Fri, 9am-6pm). You can also use our <a href="/contact" style="color:#667eea">contact form</a>.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
