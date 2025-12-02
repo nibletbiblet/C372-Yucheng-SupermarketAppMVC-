@@ -5,13 +5,17 @@ const flash = require('connect-flash');
 const multer = require('multer');
 const app = express();
 
-// Set up multer for file uploads
+// Update multer configuration to shorten filenames
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/images'); // Directory to save uploaded files
+        cb(null, 'public/images');
     },
     filename: (req, file, cb) => {
-        cb(null, file.originalname); 
+        // Get file extension
+        const ext = file.originalname.split('.').pop();
+        // Create shorter filename: timestamp + extension
+        const shortName = Date.now() + '.' + ext;
+        cb(null, shortName);
     }
 });
 
@@ -131,7 +135,12 @@ app.get('/inventory', checkAuthenticated, checkAdmin, (req, res) => {
     // Fetch data from MySQL
     connection.query('SELECT * FROM products', (error, results) => {
       if (error) throw error;
-      res.render('inventory', { products: results, user: req.session.user });
+      res.render('inventory', { 
+          products: results, 
+          user: req.session.user,
+          messages: req.flash('success'),
+          errors: req.flash('error')
+      });
     });
 });
 
@@ -412,16 +421,36 @@ app.post('/updateProduct/:id', upload.single('image'), (req, res) => {
 app.get('/deleteProduct/:id', (req, res) => {
     const productId = req.params.id;
 
-    connection.query('DELETE FROM products WHERE id = ?', [productId], (error, results) => {
-        if (error) {
-            // Handle any error that occurs during the database operation
-            console.error("Error deleting product:", error);
-            res.status(500).send('Error deleting product');
-        } else {
-            // Send a success response
-            res.redirect('/inventory');
+    // First check if product is in any orders
+    connection.query(
+        'SELECT COUNT(*) as orderCount FROM order_items WHERE product_id = ?',
+        [productId],
+        (error, results) => {
+            if (error) {
+                console.error("Error checking product orders:", error);
+                return res.status(500).send('Error checking product');
+            }
+
+            const orderCount = results[0].orderCount;
+
+            if (orderCount > 0) {
+                // Product has been ordered, cannot delete
+                req.flash('error', `Cannot delete product. It has been ordered ${orderCount} time(s). Consider marking it as out of stock instead.`);
+                return res.redirect('/inventory');
+            }
+
+            // Safe to delete - no orders reference this product
+            connection.query('DELETE FROM products WHERE id = ?', [productId], (error, results) => {
+                if (error) {
+                    console.error("Error deleting product:", error);
+                    req.flash('error', 'Error deleting product');
+                } else {
+                    req.flash('success', 'Product deleted successfully');
+                }
+                res.redirect('/inventory');
+            });
         }
-    });
+    );
 });
 
 app.get('/about', (req, res) => {

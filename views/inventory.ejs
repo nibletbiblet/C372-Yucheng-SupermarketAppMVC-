@@ -202,6 +202,18 @@
     </nav>
 
     <div class="container">
+        <!-- Add flash messages -->
+        <% if (typeof messages !== 'undefined' && messages && messages.length > 0) { %>
+            <div style="padding:1rem;background:#dcfce7;color:#065f46;border-radius:.5rem;margin:1rem 0">
+                <%= messages[0] %>
+            </div>
+        <% } %>
+        <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+            <div style="padding:1rem;background:#fef2f2;color:#991b1b;border-radius:.5rem;margin:1rem 0">
+                <%= errors[0] %>
+            </div>
+        <% } %>
+
         <div class="header">
             <h1>Inventory Management</h1>
             <a href="/addProduct" class="add-product-btn">+ Add Product</a>
