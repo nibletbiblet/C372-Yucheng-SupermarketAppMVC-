@@ -135,8 +135,22 @@ app.get('/inventory', checkAuthenticated, checkAdmin, (req, res) => {
     });
 });
 
+app.get('/login', (req, res) => {
+    res.render('auth', { 
+        messages: req.flash('success'), 
+        errors: req.flash('error'),
+        registerErrors: [],
+        formData: null
+    });
+});
+
 app.get('/register', (req, res) => {
-    res.render('register', { messages: req.flash('error'), formData: req.flash('formData')[0] });
+    res.render('auth', { 
+        messages: [], 
+        errors: [],
+        registerErrors: req.flash('error'),
+        formData: req.flash('formData')[0]
+    });
 });
 
 app.post('/register', validateRegistration, (req, res) => {
@@ -147,7 +161,6 @@ app.post('/register', validateRegistration, (req, res) => {
         if (err) {
             console.error('Registration error:', err);
             
-            // Handle specific errors
             if (err.code === 'ER_DUP_ENTRY') {
                 req.flash('error', 'Email already exists. Please use a different email or login.');
                 req.flash('formData', req.body);
@@ -160,7 +173,6 @@ app.post('/register', validateRegistration, (req, res) => {
                 return res.redirect('/register');
             }
             
-            // Generic error
             req.flash('error', 'Registration failed. Please try again.');
             req.flash('formData', req.body);
             return res.redirect('/register');
@@ -170,10 +182,6 @@ app.post('/register', validateRegistration, (req, res) => {
         req.flash('success', 'Registration successful! Please log in.');
         res.redirect('/login');
     });
-});
-
-app.get('/login', (req, res) => {
-    res.render('login', { messages: req.flash('success'), errors: req.flash('error') });
 });
 
 app.post('/login', (req, res) => {
