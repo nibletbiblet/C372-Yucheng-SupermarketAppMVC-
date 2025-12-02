@@ -223,14 +223,34 @@ app.post('/login', (req, res) => {
     });
 });
 
+// Add category column to products table (run this SQL first)
+// ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT 'grocery';
+
 app.get('/shopping', checkAuthenticated, (req, res) => {
-    // Fetch data from MySQL
-    connection.query('SELECT * FROM products', (error, results) => {
+    const category = req.query.category || '';
+    const search = req.query.search || '';
+    
+    let sql = 'SELECT * FROM products WHERE 1=1';
+    const params = [];
+    
+    if (category) {
+        sql += ' AND category = ?';
+        params.push(category);
+    }
+    
+    if (search) {
+        sql += ' AND productName LIKE ?';
+        params.push(`%${search}%`);
+    }
+    
+    connection.query(sql, params, (error, results) => {
         if (error) throw error;
         res.render('shopping', { 
             user: req.session.user, 
             products: results,
-            cart: req.session.cart || []  // Add this line
+            cart: req.session.cart || [],
+            selectedCategory: category,
+            searchTerm: search
         });
     });
 });
