@@ -231,7 +231,7 @@ app.post('/login', (req, res) => {
                 if(req.session.user.role === 'user') {
                     res.redirect('/shopping');
                 } else {
-                    res.redirect('/inventory');
+                    res.redirect('/admin/dashboard'); // Changed from /inventory
                 }
             });
         } else {
@@ -515,6 +515,95 @@ app.get('/shipping', (req, res) => {
 
 app.get('/returns', (req, res) => {
     res.render('returns', { user: req.session.user });
+});
+
+// Admin Dashboard
+app.get('/admin/dashboard', checkAuthenticated, checkAdmin, (req, res) => {
+    // Get stats
+    connection.query('SELECT COUNT(*) as count FROM users', (err, userCount) => {
+        connection.query('SELECT COUNT(*) as count FROM products', (err, productCount) => {
+            connection.query('SELECT COUNT(*) as count, SUM(total_price) as revenue FROM orders', (err, orderStats) => {
+                connection.query('SELECT * FROM products WHERE quantity < 10 ORDER BY quantity ASC LIMIT 5', (err, lowStock) => {
+                    connection.query(`
+                        SELECT o.*, u.username 
+                        FROM orders o 
+                        JOIN users u ON o.user_id = u.id 
+                        ORDER BY o.order_id DESC LIMIT 5
+                    `, (err, recentOrders) => {
+                        res.render('adminDashboard', {
+                            user: req.session.user,
+                            stats: {
+                                totalUsers: userCount[0].count,
+                                totalProducts: productCount[0].count,
+                                totalOrders: orderStats[0].count || 0,
+                                totalRevenue: parseFloat(orderStats[0].revenue) || 0
+                            },
+                            lowStockProducts: lowStock,
+                            recentOrders: recentOrders
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Manage Users
+app.get('/admin/users', checkAuthenticated, checkAdmin, (req, res) => {
+    connection.query('SELECT * FROM users ORDER BY id DESC', (err, users) => {
+        if (err) throw err;
+        res.render('manageUsers', {
+            user: req.session.user,
+            users: users,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// Delete User (only non-admin users)
+app.post('/admin/delete-user/:id', checkAuthenticated, checkAdmin, (req, res) => {
+    const userId = req.params.id;
+    
+    // Check if user is admin
+    connection.query('SELECT role FROM users WHERE id = ?', [userId], (err, results) => {
+        if (err || results.length === 0) {
+            req.flash('error', 'User not found');
+            return res.redirect('/admin/users');
+        }
+        
+        if (results[0].role === 'admin') {
+            req.flash('error', 'Cannot delete admin users');
+            return res.redirect('/admin/users');
+        }
+        
+        // Check if user has orders
+        connection.query('SELECT COUNT(*) as orderCount FROM orders WHERE user_id = ?', [userId], (err, orderResults) => {
+            if (err) {
+                console.error('Check orders error:', err);
+                req.flash('error', 'Failed to check user orders');
+                return res.redirect('/admin/users');
+            }
+            
+            const orderCount = orderResults[0].orderCount;
+            
+            if (orderCount > 0) {
+                req.flash('error', `Cannot delete user. They have ${orderCount} order(s) in the system.`);
+                return res.redirect('/admin/users');
+            }
+            
+            // Delete user (no orders)
+            connection.query('DELETE FROM users WHERE id = ?', [userId], (err) => {
+                if (err) {
+                    console.error('Delete user error:', err);
+                    req.flash('error', 'Failed to delete user');
+                } else {
+                    req.flash('success', 'User deleted successfully');
+                }
+                res.redirect('/admin/users');
+            });
+        });
+    });
 });
 
 const PORT = process.env.PORT || 3001;
