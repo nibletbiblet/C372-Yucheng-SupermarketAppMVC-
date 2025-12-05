@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - FreshMarket Admin</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+        .nav { background:#fff; padding:1rem 0; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+        .container { width:90%; max-width:1400px; margin:2rem auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.5rem; font-weight:900; color:#667eea; }
+        .nav-links { display:flex; gap:1rem; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        
+        h1 { color:#333; margin-bottom:2rem; }
+        
+        .reports-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(350px, 1fr));
+            gap:2rem;
+            margin-bottom:2rem;
+        }
+        .report-card {
+            background:#fff;
+            border-radius:1rem;
+            padding:2rem;
+            box-shadow:0 4px 15px rgba(0,0,0,.08);
+        }
+        .report-card h2 { color:#667eea; margin-bottom:1.5rem; font-size:1.3rem; }
+        .report-item {
+            display:flex;
+            justify-content:space-between;
+            padding:1rem 0;
+            border-bottom:1px solid #f1f5f9;
+        }
+        .report-item:last-child { border-bottom:none; }
+        .report-label { color:#64748b; font-weight:600; }
+        .report-value { color:#333; font-weight:700; font-size:1.1rem; }
+        
+        .chart-placeholder {
+            height:200px;
+            background:linear-gradient(135deg, #667eea15, #764ba215);
+            border-radius:1rem;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#667eea;
+            font-size:1.1rem;
+            font-weight:600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">🛒 FreshMarket Admin</div>
+                <div class="nav-links">
+                    <a href="/admin/dashboard">Dashboard</a>
+                    <a href="/inventory">Inventory</a>
+                    <a href="/admin/users">Users</a>
+                    <a href="/admin/orders">Orders</a>
+                    <a href="/admin/reports">Reports</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📈 Reports & Analytics</h1>
+        
+        <div class="reports-grid">
+            <div class="report-card">
+                <h2>📊 Sales Summary</h2>
+                <div class="report-item">
+                    <span class="report-label">Total Revenue:</span>
+                    <span class="report-value">$<%= stats.totalRevenue.toFixed(2) %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Total Orders:</span>
+                    <span class="report-value"><%= stats.totalOrders %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Average Order Value:</span>
+                    <span class="report-value">$<%= stats.totalOrders > 0 ? (stats.totalRevenue / stats.totalOrders).toFixed(2) : '0.00' %></span>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h2>👥 Customer Insights</h2>
+                <div class="report-item">
+                    <span class="report-label">Total Users:</span>
+                    <span class="report-value"><%= stats.totalUsers %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Active Customers:</span>
+                    <span class="report-value"><%= stats.activeCustomers %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">New This Month:</span>
+                    <span class="report-value"><%= stats.newUsers %></span>
+                </div>
+            </div>
+
+            <div class="report-card">
+                <h2>📦 Inventory Status</h2>
+                <div class="report-item">
+                    <span class="report-label">Total Products:</span>
+                    <span class="report-value"><%= stats.totalProducts %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Low Stock Items:</span>
+                    <span class="report-value" style="color:#ef4444;"><%= stats.lowStockCount %></span>
+                </div>
+                <div class="report-item">
+                    <span class="report-label">Total Reviews:</span>
+                    <span class="report-value"><%= stats.totalReviews %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <h2>🏆 Top Selling Products</h2>
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8fafc;">
+                        <th style="padding:1rem;text-align:left;">Product</th>
+                        <th style="padding:1rem;text-align:left;">Category</th>
+                        <th style="padding:1rem;text-align:right;">Units Sold</th>
+                        <th style="padding:1rem;text-align:right;">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (topProducts.length > 0) { %>
+                        <% topProducts.forEach(product => { %>
+                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:1rem;"><%= product.productName %></td>
+                                <td style="padding:1rem;"><%= product.category || 'N/A' %></td>
+                                <td style="padding:1rem;text-align:right;"><%= product.total_sold %></td>
+                                <td style="padding:1rem;text-align:right;">$<%= parseFloat(product.total_revenue).toFixed(2) %></td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align:center;padding:2rem;color:#999;">No sales data available</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
