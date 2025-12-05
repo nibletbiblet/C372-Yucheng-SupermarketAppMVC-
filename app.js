@@ -34,6 +34,9 @@ connection.connect((err) => {
         return;
     }
     console.log('Connected to MySQL database');
+    
+    // ⭐ ADD THIS LINE - Share connection with routes
+    app.locals.connection = connection;
 });
 
 // Set up view engine
