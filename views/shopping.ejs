@@ -354,6 +354,16 @@
                             <h3 class="product-name"><%= product.productName %></h3>
                             <div class="product-rating">⭐⭐⭐⭐⭐ (4.5)</div>
                             <div class="product-price">$<%= parseFloat(product.price).toFixed(2) %></div>
+                            
+                            <!-- Add average rating -->
+                            <% if (product.avg_rating) { %>
+                                <div style="color:#f59e0b;margin:.5rem 0;">
+                                    <% for(let i=0; i<Math.floor(product.avg_rating); i++) { %>★<% } %>
+                                    <% if (product.avg_rating % 1 >= 0.5) { %>⯨<% } %>
+                                    <span style="color:#666;font-size:.9rem;">(<%= product.review_count %> reviews)</span>
+                                </div>
+                            <% } %>
+                            
                             <div class="product-stock">
                                 <% if (product.quantity > 10) { %>
                                     ✅ In Stock

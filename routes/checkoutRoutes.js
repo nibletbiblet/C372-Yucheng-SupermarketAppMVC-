@@ -17,5 +17,6 @@ router.post('/', checkAuthenticated, checkoutController.placeOrder);
 router.get('/success/:orderId', checkAuthenticated, checkoutController.orderSuccess);
 router.get('/invoice/:orderId', checkAuthenticated, checkoutController.viewInvoice);
 router.get('/orders', checkAuthenticated, checkoutController.myOrders);
+router.get('/review-order/:orderId', checkAuthenticated, checkoutController.reviewOrder);
 
 module.exports = router;

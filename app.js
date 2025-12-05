@@ -250,18 +250,25 @@ app.get('/shopping', checkAuthenticated, (req, res) => {
     const category = req.query.category || '';
     const search = req.query.search || '';
     
-    let sql = 'SELECT * FROM products WHERE 1=1';
+    let sql = `SELECT p.*, 
+               AVG(r.rating) as avg_rating, 
+               COUNT(r.id) as review_count 
+               FROM products p 
+               LEFT JOIN reviews r ON p.id = r.product_id 
+               WHERE 1=1`;
     const params = [];
     
     if (category) {
-        sql += ' AND category = ?';
+        sql += ' AND p.category = ?';
         params.push(category);
     }
     
     if (search) {
-        sql += ' AND productName LIKE ?';
+        sql += ' AND p.productName LIKE ?';
         params.push(`%${search}%`);
     }
+    
+    sql += ' GROUP BY p.id';
     
     connection.query(sql, params, (error, results) => {
         if (error) throw error;
@@ -333,22 +340,64 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/product/:id', checkAuthenticated, (req, res) => {
-  // Extract the product ID from the request parameters
-  const productId = req.params.id;
+    const productId = req.params.id;
 
-  // Fetch data from MySQL based on the product ID
-  connection.query('SELECT * FROM products WHERE id = ?', [productId], (error, results) => {
-      if (error) throw error;
+    // Fetch product details
+    connection.query('SELECT * FROM products WHERE id = ?', [productId], (error, results) => {
+        if (error) throw error;
 
-      // Check if any product with the given ID was found
-      if (results.length > 0) {
-          // Render HTML page with the product data
-          res.render('product', { product: results[0], user: req.session.user  });
-      } else {
-          // If no product with the given ID was found, render a 404 page or handle it accordingly
-          res.status(404).send('Product not found');
-      }
-  });
+        if (results.length > 0) {
+            // Fetch reviews for this product
+            connection.query(
+                `SELECT r.*, u.username 
+                 FROM reviews r 
+                 JOIN users u ON r.user_id = u.id 
+                 WHERE r.product_id = ? 
+                 ORDER BY r.created_at DESC`,
+                [productId],
+                (err, reviews) => {
+                    if (err) {
+                        console.error('Error fetching reviews:', err);
+                        reviews = [];
+                    }
+                    
+                    res.render('product', { 
+                        product: results[0], 
+                        user: req.session.user,
+                        reviews: reviews
+                    });
+                }
+            );
+        } else {
+            res.status(404).send('Product not found');
+        }
+    });
+});
+
+// Add review route
+app.post('/product/:id/review', checkAuthenticated, (req, res) => {
+    const productId = req.params.id;
+    const userId = req.session.user.id;
+    const { rating, review_text } = req.body;
+
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+        req.flash('error', 'Please provide a valid rating (1-5 stars)');
+        return res.redirect('/product/' + productId);
+    }
+
+    // Insert review
+    const sql = 'INSERT INTO reviews (product_id, user_id, rating, review_text) VALUES (?, ?, ?, ?)';
+    connection.query(sql, [productId, userId, rating, review_text], (err, result) => {
+        if (err) {
+            console.error('Review insert error:', err);
+            req.flash('error', 'Failed to submit review');
+        } else {
+            req.flash('success', 'Thank you for your review!');
+        }
+        // Redirect to shopping page instead of product page
+        res.redirect('/shopping');
+    });
 });
 
 app.get('/addProduct', checkAuthenticated, checkAdmin, (req, res) => {

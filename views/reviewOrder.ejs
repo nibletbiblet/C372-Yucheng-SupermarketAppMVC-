@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Reviews - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+        .nav { background:#fff; padding:1rem 0; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+        .container { width:90%; max-width:900px; margin:2rem auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.5rem; font-weight:900; color:#667eea; }
+        .nav-links { display:flex; gap:1rem; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        
+        h1 { color:#333; margin-bottom:2rem; }
+        
+        .review-card {
+            background:#fff;
+            border-radius:1rem;
+            padding:2rem;
+            margin-bottom:1.5rem;
+            box-shadow:0 4px 15px rgba(0,0,0,.1);
+        }
+        
+        .product-header {
+            display:flex;
+            align-items:center;
+            gap:1rem;
+            margin-bottom:1.5rem;
+            padding-bottom:1rem;
+            border-bottom:2px solid #f1f5f9;
+        }
+        
+        .product-image {
+            width:80px;
+            height:80px;
+            object-fit:cover;
+            border-radius:.7rem;
+        }
+        
+        .product-name {
+            font-size:1.2rem;
+            font-weight:700;
+            color:#333;
+        }
+        
+        .rating-section {
+            margin-bottom:1rem;
+        }
+        
+        .rating-label {
+            display:block;
+            margin-bottom:.5rem;
+            font-weight:600;
+            color:#555;
+        }
+        
+        .star-rating {
+            display:flex;
+            gap:.5rem;
+            margin-bottom:1rem;
+        }
+        
+        .star-rating input[type="radio"] { display:none; }
+        
+        .star-rating label {
+            cursor:pointer;
+            font-size:2rem;
+            color:#ddd;
+            transition:all .2s;
+        }
+        
+        .star-rating label:hover,
+        .star-rating label.active {
+            color:#f59e0b;
+        }
+        
+        textarea {
+            width:100%;
+            padding:1rem;
+            border:2px solid #e2e8f0;
+            border-radius:.7rem;
+            font-family:inherit;
+            font-size:1rem;
+            resize:vertical;
+            min-height:100px;
+        }
+        
+        textarea:focus {
+            outline:none;
+            border-color:#667eea;
+        }
+        
+        .btn-submit {
+            width:100%;
+            padding:1rem;
+            background:#667eea;
+            color:#fff;
+            border:none;
+            border-radius:.7rem;
+            font-weight:700;
+            font-size:1rem;
+            cursor:pointer;
+            transition:all .3s;
+            margin-top:1rem;
+        }
+        
+        .btn-submit:hover {
+            background:#764ba2;
+            transform:translateY(-2px);
+        }
+        
+        .skip-btn {
+            display:block;
+            text-align:center;
+            margin-top:1rem;
+            color:#999;
+            text-decoration:none;
+        }
+        
+        .skip-btn:hover {
+            color:#667eea;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">🛒 FreshMarket</div>
+                <div class="nav-links">
+                    <a href="/shopping">Shop</a>
+                    <a href="/checkout/orders">My Orders</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>⭐ Rate Your Purchase</h1>
+        <p style="color:#666;margin-bottom:2rem;">Help other customers by sharing your experience!</p>
+        
+        <% items.forEach(item => { %>
+            <div class="review-card">
+                <div class="product-header">
+                    <img src="/images/<%= item.image || 'placeholder.png' %>" alt="<%= item.productName %>" class="product-image">
+                    <div class="product-name"><%= item.productName %></div>
+                </div>
+                
+                <form action="/product/<%= item.product_id %>/review" method="POST">
+                    <div class="rating-section">
+                        <label class="rating-label">Your Rating:</label>
+                        <div class="star-rating" data-product="<%= item.product_id %>">
+                            <% for(let i=1; i<=5; i++) { %>
+                                <label for="rating-<%= item.product_id %>-<%= i %>">
+                                    <input type="radio" id="rating-<%= item.product_id %>-<%= i %>" name="rating" value="<%= i %>" required>
+                                    <span class="star" data-value="<%= i %>">★</span>
+                                </label>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <label class="rating-label">Your Review (Optional):</label>
+                    <textarea name="review_text" placeholder="Share your thoughts about this product..."></textarea>
+                    
+                    <button type="submit" class="btn-submit">Submit Review</button>
+                </form>
+            </div>
+        <% }); %>
+        
+        <a href="/shopping" class="skip-btn">Skip for now →</a>
+    </div>
+    
+    <script>
+        // Star rating interaction
+        document.querySelectorAll('.star-rating').forEach(container => {
+            const stars = container.querySelectorAll('.star');
+            const radios = container.querySelectorAll('input[type="radio"]');
+            
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    radios[index].checked = true;
+                    updateStars(container, index + 1);
+                });
+                
+                star.addEventListener('mouseenter', function() {
+                    updateStars(container, index + 1);
+                });
+            });
+            
+            container.addEventListener('mouseleave', function() {
+                const checked = container.querySelector('input[type="radio"]:checked');
+                if (checked) {
+                    updateStars(container, parseInt(checked.value));
+                } else {
+                    updateStars(container, 0);
+                }
+            });
+        });
+        
+        function updateStars(container, rating) {
+            const stars = container.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.parentElement.classList.add('active');
+                } else {
+                    star.parentElement.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

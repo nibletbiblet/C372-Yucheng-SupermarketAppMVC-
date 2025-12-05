@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .success-container {
+            background: #fff;
+            border-radius: 2rem;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 4rem;
+            color: white;
+        }
+        
+        h1 { color: #333; font-size: 2.5rem; margin-bottom: 1rem; }
+        
+        .order-number {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9ff;
+            border-radius: 1rem;
+        }
+        
+        .message { color: #666; font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem; }
+        
+        .order-details {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #667eea;
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+        }
+        
+        .detail-label { color: #666; }
+        .detail-value { color: #333; font-weight: 600; }
+        
+        .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; }
+        
+        .btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.7rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8fafc;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover { background: #667eea; color: white; }
+        
+        @media (max-width: 768px) {
+            .success-container { padding: 2rem; }
+            h1 { font-size: 2rem; }
+            .order-number { font-size: 1.2rem; }
+            .action-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✓</div>
+        
+        <h1>🎉 Order Placed Successfully!</h1>
+        
+        <div class="order-number">Order #<%= orderId %></div>
+        
+        <p class="message">
+            Thank you for your order! We've received your purchase and it's being processed. 
+            You'll receive a confirmation email shortly.
+        </p>
+        
+        <div class="order-details">
+            <div class="detail-row">
+                <span class="detail-label">📦 Order ID:</span>
+                <span class="detail-value">#<%= orderId %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">📅 Order Date:</span>
+                <span class="detail-value"><%= new Date().toLocaleDateString() %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">⏰ Estimated Delivery:</span>
+                <span class="detail-value">2-3 Business Days</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">💰 Total Amount:</span>
+                <span class="detail-value">$<%= parseFloat(totalAmount).toFixed(2) %></span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/checkout/orders" class="btn btn-secondary">📄 View Orders</a>
+            <a href="/checkout/review-order/<%= orderId %>" class="btn btn-primary">⭐ Leave Review</a>
+        </div>
+        
+        <div style="margin-top: 2rem; color: #999; font-size: 0.9rem;">
+            <p>Questions? Contact us at <strong>support@freshmarket.com</strong></p>
+        </div>
+    </div>
+</body>
+</html>
