@@ -2,6 +2,78 @@ const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const connection = require('../config/database');
 
+const beginTransactionAsync = (connection) =>
+    new Promise((resolve, reject) => {
+        connection.beginTransaction((err) => (err ? reject(err) : resolve()));
+    });
+
+const queryAsync = (connection, sql, params) =>
+    new Promise((resolve, reject) => {
+        connection.query(sql, params, (err, results) => (err ? reject(err) : resolve(results)));
+    });
+
+const commitAsync = (connection) =>
+    new Promise((resolve, reject) => {
+        connection.commit((err) => (err ? reject(err) : resolve()));
+    });
+
+const rollbackAsync = (connection) =>
+    new Promise((resolve) => {
+        connection.rollback(() => resolve());
+    });
+
+const createOrderFromCart = async (req) => {
+    const connection = req.app.locals.connection;
+    const cart = req.session.cart || [];
+
+    if (cart.length === 0) {
+        throw new Error('Your cart is empty');
+    }
+
+    const userId = req.session.user.id;
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    await beginTransactionAsync(connection);
+
+    try {
+        const orderSql = 'INSERT INTO orders (user_id, total_price) VALUES (?, ?)';
+        const orderResult = await queryAsync(connection, orderSql, [userId, total]);
+        const orderId = orderResult.insertId;
+
+        for (const item of cart) {
+            const rows = await queryAsync(connection, 'SELECT quantity FROM products WHERE id = ?', [item.id]);
+            if (!rows || rows.length === 0) {
+                throw new Error('Product not found: ' + item.name);
+            }
+
+            const availableStock = rows[0].quantity;
+            if (availableStock < item.quantity) {
+                throw new Error(`Not enough stock for ${item.name}. Only ${availableStock} available.`);
+            }
+
+            const subtotal = item.price * item.quantity;
+            await queryAsync(
+                connection,
+                'INSERT INTO order_items (order_id, product_id, quantity, price, subtotal) VALUES (?, ?, ?, ?, ?)',
+                [orderId, item.id, item.quantity, item.price, subtotal]
+            );
+
+            await queryAsync(
+                connection,
+                'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+                [item.quantity, item.id]
+            );
+        }
+
+        await commitAsync(connection);
+        req.session.cart = [];
+        return { orderId, total };
+    } catch (err) {
+        await rollbackAsync(connection);
+        throw err;
+    }
+};
+
 exports.checkoutPage = (req, res) => {
     const cart = req.session.cart || [];
     if (cart.length === 0) {
@@ -12,6 +84,23 @@ exports.checkoutPage = (req, res) => {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     res.render('checkout', {
+        cart: cart,
+        total: total,
+        user: req.session.user
+    });
+};
+
+exports.paymentPage = (req, res) => {
+    const cart = req.session.cart || [];
+    if (cart.length === 0) {
+        req.flash('error', 'Your cart is empty');
+        return res.redirect('/cart');
+    }
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    req.session.paymentTotal = total;
+
+    res.render('payment', {
         cart: cart,
         total: total,
         user: req.session.user
@@ -225,3 +314,5 @@ exports.reviewOrder = (req, res) => {
         }
     );
 };
+
+exports.createOrderFromCart = createOrderFromCart;

@@ -14,6 +14,7 @@ const checkAuthenticated = (req, res, next) => {
 
 router.get('/', checkAuthenticated, checkoutController.checkoutPage);
 router.post('/', checkAuthenticated, checkoutController.placeOrder);
+router.post('/payment', checkAuthenticated, checkoutController.paymentPage);
 router.get('/success/:orderId', checkAuthenticated, checkoutController.orderSuccess);
 router.get('/invoice/:orderId', checkAuthenticated, checkoutController.viewInvoice);
 router.get('/orders', checkAuthenticated, checkoutController.myOrders);

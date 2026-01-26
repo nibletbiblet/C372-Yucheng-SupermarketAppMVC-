@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const session = require('express-session');
 const flash = require('connect-flash');
 const multer = require('multer');
+require('dotenv').config();
 const app = express();
 
 // Update multer configuration to shorten filenames
@@ -47,6 +48,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({
     extended: false
 }));
+app.use(express.json());
 
 //TO DO: Insert code for Session Middleware below 
 app.use(session({
@@ -62,6 +64,8 @@ app.use(flash());
 // Add these lines after the flash middleware
 const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
+const paypal = require('./services/paypal');
+const checkoutController = require('./controllers/checkoutController');
 
 // Middleware to check if user is logged in
 const checkAuthenticated = (req, res, next) => {
@@ -123,6 +127,44 @@ const validateRegistration = (req, res, next) => {
 // Mount new routes (add before existing routes)
 app.use('/cart', cartRoutes);
 app.use('/checkout', checkoutRoutes);
+
+// PayPal API routes
+app.post('/api/paypal/create-order', checkAuthenticated, async (req, res) => {
+    try {
+        const total = req.session.paymentTotal || 0;
+        if (!total || total <= 0) {
+            return res.status(400).json({ error: 'Invalid payment amount' });
+        }
+
+        const order = await paypal.createOrder(total.toFixed(2));
+        if (order && order.id) {
+            return res.json({ id: order.id });
+        }
+
+        return res.status(500).json({ error: 'Failed to create PayPal order', details: order });
+    } catch (err) {
+        return res.status(500).json({ error: 'Failed to create PayPal order', message: err.message });
+    }
+});
+
+app.post('/api/paypal/capture-order', checkAuthenticated, async (req, res) => {
+    try {
+        const { orderID } = req.body;
+        if (!orderID) {
+            return res.status(400).json({ error: 'Missing PayPal order ID' });
+        }
+
+        const capture = await paypal.captureOrder(orderID);
+        if (capture && capture.status === 'COMPLETED') {
+            const { orderId } = await checkoutController.createOrderFromCart(req);
+            return res.json({ success: true, orderId });
+        }
+
+        return res.status(400).json({ error: 'Payment not completed', details: capture });
+    } catch (err) {
+        return res.status(500).json({ error: 'Failed to capture PayPal order', message: err.message });
+    }
+});
 
 // Define routes
 app.get('/',  (req, res) => {
