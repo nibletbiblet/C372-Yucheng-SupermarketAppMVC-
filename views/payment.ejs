@@ -106,9 +106,13 @@
                         <div class="method-note">Secure checkout with PayPal.</div>
                     </div>
 
-                    <div class="method-card" aria-disabled="true">
+                    <div class="method-card">
                         <div class="method-title">NETS</div>
-                        <div class="method-note">Coming next.</div>
+                        <form action="/api/nets/generate-qr" method="POST" style="margin-top:.5rem;">
+                            <input type="hidden" name="cartTotal" value="<%= (total || 0).toFixed(2) %>">
+                            <button type="submit" class="btn btn-primary">Pay with NETS</button>
+                        </form>
+                        <div class="method-note">Scan the QR code with your NETS app.</div>
                     </div>
                 </div>
             </div>

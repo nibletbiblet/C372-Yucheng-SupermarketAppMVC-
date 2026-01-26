@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://unpkg.com/event-source-polyfill"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; }
+        .card { max-width: 520px; margin: 0 auto; text-align: center; }
+        img { max-width: 320px; width: 100%; height: auto; margin: 1rem 0; }
+        .muted { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Scan the NETS QR</h1>
+        <p id="status" class="muted">Scan with your NETS app to complete payment</p>
+        <img src="<%= qrCodeUrl %>" alt="NETS QR Code" />
+        <p id="timer" class="muted">Time remaining: 5:00</p>
+        <a href="/checkout/payment">Cancel</a>
+    </div>
+
+    <script>
+        let s2sNetsTxnStatus;
+        const txnRetrievalRef = "<%= txnRetrievalRef %>";
+        const url = `/sse/payment-status/${txnRetrievalRef}`;
+
+        s2sNetsTxnStatus = new EventSourcePolyfill(url, { heartbeatTimeout: 150000 });
+
+        s2sNetsTxnStatus.addEventListener("message", (event) => {
+            const data = JSON.parse(event.data);
+            if (data.success) {
+                s2sNetsTxnStatus.close();
+                window.location.href = `/nets-qr/success?txn_retrieval_ref=${txnRetrievalRef}`;
+            } else if (data.fail) {
+                s2sNetsTxnStatus.close();
+                window.location.href = `/nets-qr/fail?txn_retrieval_ref=${txnRetrievalRef}`;
+            }
+        });
+
+        const timerElement = document.getElementById("timer");
+        const countdownDuration = 300;
+        let remainingTime = countdownDuration;
+
+        const updateTimer = () => {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            timerElement.textContent = `Time remaining: ${minutes}:${seconds.toString().padStart(2, "0")}`;
+            remainingTime--;
+
+            if (remainingTime < 0) {
+                clearInterval(timerInterval);
+                timerElement.textContent = "Transaction timed out.";
+                if (s2sNetsTxnStatus) s2sNetsTxnStatus.close();
+                window.location.href = `/nets-qr/fail?txn_retrieval_ref=${txnRetrievalRef}`;
+            }
+        };
+
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+</body>
+</html>

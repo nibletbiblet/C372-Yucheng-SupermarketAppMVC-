@@ -5,6 +5,7 @@ const flash = require('connect-flash');
 const multer = require('multer');
 require('dotenv').config();
 const app = express();
+const axios = require('axios');
 
 // Update multer configuration to shorten filenames
 const storage = multer.diskStorage({
@@ -66,6 +67,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
 const paypal = require('./services/paypal');
 const checkoutController = require('./controllers/checkoutController');
+const netsQr = require('./services/nets');
 
 // Middleware to check if user is logged in
 const checkAuthenticated = (req, res, next) => {
@@ -164,6 +166,76 @@ app.post('/api/paypal/capture-order', checkAuthenticated, async (req, res) => {
     } catch (err) {
         return res.status(500).json({ error: 'Failed to capture PayPal order', message: err.message });
     }
+});
+
+// NETS API routes
+app.post('/api/nets/generate-qr', checkAuthenticated, netsQr.generateQrCode);
+app.get('/nets-qr/success', checkAuthenticated, (req, res) => {
+    res.render('netsTxnSuccessStatus', { message: 'Transaction Successful!' });
+});
+app.get('/nets-qr/fail', checkAuthenticated, (req, res) => {
+    res.render('netsTxnFailStatus', { message: 'Transaction Failed. Please try again.' });
+});
+
+// Server-Sent Events endpoint for NETS payment status polling
+app.get('/sse/payment-status/:txnRetrievalRef', checkAuthenticated, async (req, res) => {
+    res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    });
+
+    const txnRetrievalRef = req.params.txnRetrievalRef;
+    let pollCount = 0;
+    const maxPolls = 60;
+    let frontendTimeoutStatus = 0;
+
+    const interval = setInterval(async () => {
+        pollCount++;
+
+        try {
+            const response = await axios.post(
+                'https://sandbox.nets.openapipaas.com/api/v1/common/payments/nets-qr/query',
+                { txn_retrieval_ref: txnRetrievalRef, frontend_timeout_status: frontendTimeoutStatus },
+                {
+                    headers: {
+                        'api-key': process.env.API_KEY,
+                        'project-id': process.env.PROJECT_ID,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            res.write(`data: ${JSON.stringify(response.data)}\n\n`);
+
+            const resData = response.data.result.data;
+
+            if (resData.response_code == "00" && resData.txn_status === 1) {
+                res.write(`data: ${JSON.stringify({ success: true })}\n\n`);
+                clearInterval(interval);
+                res.end();
+            } else if (frontendTimeoutStatus == 1 && resData && (resData.response_code !== "00" || resData.txn_status === 2)) {
+                res.write(`data: ${JSON.stringify({ fail: true, ...resData })}\n\n`);
+                clearInterval(interval);
+                res.end();
+            }
+        } catch (err) {
+            clearInterval(interval);
+            res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+            res.end();
+        }
+
+        if (pollCount >= maxPolls) {
+            clearInterval(interval);
+            frontendTimeoutStatus = 1;
+            res.write(`data: ${JSON.stringify({ fail: true, error: "Timeout" })}\n\n`);
+            res.end();
+        }
+    }, 5000);
+
+    req.on('close', () => {
+        clearInterval(interval);
+    });
 });
 
 // Define routes
