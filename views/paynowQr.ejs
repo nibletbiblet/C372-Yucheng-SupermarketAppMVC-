@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - FreshMarket</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #0f141c;
+            color: #e7ecf4;
+            min-height: 100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            background:#161b22;
+            border:1px solid #262d38;
+            border-radius:16px;
+            padding:2rem;
+            width: 90%;
+            max-width: 420px;
+            text-align:center;
+        }
+        h2 { margin-bottom:.75rem; }
+        .amount { font-size:1.5rem; margin-bottom:1rem; }
+        img { max-width:240px; border-radius:12px; background:#fff; padding:8px; }
+        .note { color:#9aa4b2; margin-top:1rem; font-size:.9rem; }
+        .btn { margin-top:1.25rem; display:inline-block; padding:.7rem 1.25rem; background:#2f6bff; color:#fff; border-radius:10px; text-decoration:none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2><%= title %></h2>
+        <div class="amount">Amount: SGD <%= total %></div>
+        <img src="<%= qrCodeUrl %>" alt="PayNow QR">
+        <div class="note">Simulated PayNow QR. Scan to complete payment.</div>
+        <a href="/checkout/payment" class="btn">Back to Payment</a>
+    </div>
+</body>
+</html>

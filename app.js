@@ -65,9 +65,12 @@ app.use(flash());
 // Add these lines after the flash middleware
 const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const paypal = require('./services/paypal');
 const checkoutController = require('./controllers/checkoutController');
 const netsQr = require('./services/nets');
+const paynowQr = require('./services/paynow');
 
 // Middleware to check if user is logged in
 const checkAuthenticated = (req, res, next) => {
@@ -129,6 +132,8 @@ const validateRegistration = (req, res, next) => {
 // Mount new routes (add before existing routes)
 app.use('/cart', cartRoutes);
 app.use('/checkout', checkoutRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/admin', adminRoutes);
 
 // PayPal API routes
 app.post('/api/paypal/create-order', checkAuthenticated, async (req, res) => {
@@ -170,6 +175,7 @@ app.post('/api/paypal/capture-order', checkAuthenticated, async (req, res) => {
 
 // NETS API routes
 app.post('/api/nets/generate-qr', checkAuthenticated, netsQr.generateQrCode);
+app.post('/api/paynow/generate-qr', checkAuthenticated, paynowQr.generateQrCode);
 app.get('/nets-qr/success', checkAuthenticated, (req, res) => {
     res.render('netsTxnSuccessStatus', { message: 'Transaction Successful!' });
 });

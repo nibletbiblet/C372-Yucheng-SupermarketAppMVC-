@@ -91,7 +91,7 @@
 
         .payment-grid {
             display: grid;
-            grid-template-columns: 1.05fr 1fr;
+            grid-template-columns: 1fr;
             gap: 2rem;
         }
 
@@ -302,7 +302,7 @@
         }
 
         #paypal-button-container {
-            min-height: 40px;
+            min-height: 46px;
         }
 
         #paypal-error {
@@ -339,13 +339,29 @@
             </div>
         </header>
 
-        <div class="payment-grid">
+        <div class="payment-grid" id="paymentOrchestratorApp" data-order-id="">
             <section class="panel left">
+                <div class="amount-card" style="margin-bottom:1.25rem;">
+                    <div class="amount-label">Wallet balance</div>
+                    <div class="amount-value" id="walletBalance">$0.00</div>
+                    <div class="method-note">Use wallet to split your payment.</div>
+                    <div class="input-group" style="margin-top:0.75rem;">
+                        <label for="walletUse">Use wallet amount</label>
+                        <input id="walletUse" type="number" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="apply-row" style="margin-top:0.75rem;">
+                        <div class="input-group">
+                            <label for="walletTopup">Top up wallet</label>
+                            <input id="walletTopup" type="number" min="0" step="0.01" placeholder="10.00">
+                        </div>
+                        <button type="button" class="apply-btn" id="walletTopupBtn">Top up</button>
+                    </div>
+                </div>
                 <a class="back-link" href="/cart">Back to cart</a>
                 <h1>Select Payment Method</h1>
 
                 <div class="method-list">
-                    <div class="method-card">
+                    <div class="method-card" data-provider="PAYPAL">
                         <div class="method-info">
                             <div class="method-icon">P</div>
                             <div>
@@ -359,7 +375,7 @@
                         </div>
                     </div>
 
-                    <div class="method-card">
+                    <div class="method-card" data-provider="NETS">
                         <div class="method-info">
                             <div class="method-icon">N</div>
                             <div>
@@ -367,22 +383,59 @@
                                 <div class="method-note">Pay by scanning a NETS QR code.</div>
                             </div>
                         </div>
-                        <form action="/api/nets/generate-qr" method="POST">
-                            <input type="hidden" name="cartTotal" value="<%= (total || 0).toFixed(2) %>">
-                            <button type="submit" class="ghost-btn">Pay with NETS</button>
-                        </form>
+                        <button type="button" class="ghost-btn" id="netsBtn">Pay with NETS</button>
                     </div>
 
-                    <div class="method-card">
+                    <div class="method-card" data-provider="PAYNOW">
                         <div class="method-info">
-                            <div class="method-icon">C</div>
+                            <div class="method-icon">P</div>
                             <div>
-                                <div class="method-title">Credit / Debit Card</div>
-                                <div class="method-note">Pay with Visa, Mastercard, or Amex.</div>
+                                <div class="method-title">PayNow</div>
+                                <div class="method-note">Simulated PayNow QR.</div>
                             </div>
                         </div>
-                        <span class="method-note">Selected</span>
+                        <button type="button" class="ghost-btn" id="paynowBtn">Pay with PayNow</button>
                     </div>
+
+                    <div class="method-card" data-provider="STRIPE">
+                        <div class="method-info">
+                            <div class="method-icon">S</div>
+                            <div>
+                                <div class="method-title">Stripe</div>
+                                <div class="method-note">Pay securely with Stripe Checkout.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="ghost-btn" id="stripeBtn">Pay with Stripe</button>
+                    </div>
+
+                    <div class="method-card" data-provider="STRIPE_PAYNOW">
+                        <div class="method-info">
+                            <div class="method-icon">PN</div>
+                            <div>
+                                <div class="method-title">PayNow (Stripe)</div>
+                                <div class="method-note">Real PayNow test mode via Stripe.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="ghost-btn" id="stripePaynowBtn">PayNow</button>
+                    </div>
+
+                    <div class="method-card" data-provider="STRIPE_GPAY">
+                        <div class="method-info">
+                            <div class="method-icon">G</div>
+                            <div>
+                                <div class="method-title">Google Pay (Stripe)</div>
+                                <div class="method-note">Shows on supported devices.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="ghost-btn" id="stripeGpayBtn">Google Pay</button>
+                    </div>
+                </div>
+                <div class="plan-card">
+                    <div>
+                        <div class="plan-title">Recommended</div>
+                        <div class="plan-desc">We suggest PayPal for fastest approval.</div>
+                    </div>
+                    <button type="button" class="ghost-btn">Use PayPal</button>
                 </div>
 
                 <div class="amount-card">
@@ -405,80 +458,174 @@
 
             <section class="panel right">
                 <h2>Payment</h2>
-                <p>To finalize your order, complete your payment information.</p>
-
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label for="cardName">Card Holder Name</label>
-                        <input id="cardName" type="text" placeholder="Steve James">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="cardNumber">Card Number</label>
-                        <input id="cardNumber" type="text" placeholder="7920 8800 9921 3040">
-                    </div>
-
-                    <div class="split">
-                        <div class="input-group">
-                            <label for="expiry">Expiry date</label>
-                            <input id="expiry" type="text" placeholder="12 / 2025">
-                        </div>
-                        <div class="input-group">
-                            <label for="cvv">CVV</label>
-                            <input id="cvv" type="text" placeholder="007">
-                        </div>
-                    </div>
-
-                    <div class="apply-row">
-                        <div class="input-group">
-                            <label for="coupon">Discount Coupon (Optional)</label>
-                            <input id="coupon" type="text" placeholder="DISCOUNT2026">
-                        </div>
-                        <button type="button" class="apply-btn">Apply</button>
-                    </div>
-
-                    <button type="button" class="primary-btn">Pay now</button>
-                </div>
-
-                <div class="fine-print">Card details are for UI display only. Use PayPal or NETS to complete payment.</div>
+                <p>Select a payment method on the left to continue.</p>
+                <div class="fine-print" id="statusArea">Status: Ready.</div>
             </section>
         </div>
     </div>
 
     <script>
-        if (!window.paypal || !paypal.Buttons) {
-            document.getElementById('paypal-error').style.display = 'block';
-        } else {
-            paypal.Buttons({
-                createOrder: function () {
-                    return fetch('/api/paypal/create-order', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({})
-                    })
-                    .then((res) => res.json())
-                    .then((data) => data.id);
-                },
-                onApprove: function (data) {
-                    return fetch('/api/paypal/capture-order', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderID: data.orderID })
-                    })
-                    .then((res) => res.json())
-                    .then((result) => {
-                        if (result && result.success && result.orderId) {
-                            window.location.href = '/checkout/success/' + result.orderId;
-                        } else {
-                            alert('Payment not completed.');
-                        }
-                    });
-                },
-                onError: function () {
-                    alert('PayPal payment failed. Please try again.');
-                }
-            }).render('#paypal-button-container');
+        async function fetchWalletBalance() {
+            const res = await fetch('/api/payments/wallet/balance');
+            const data = await res.json();
+            if (data && data.balance !== undefined) {
+                document.getElementById('walletBalance').textContent = `$${Number(data.balance).toFixed(2)}`;
+            }
         }
+        fetchWalletBalance();
+
+        async function createPayment(provider) {
+            let walletUse = parseFloat(document.getElementById('walletUse').value || '0');
+            if (Number.isNaN(walletUse)) {
+                walletUse = 0;
+            }
+            const res = await fetch('/api/payments/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider, useWalletAmount: walletUse })
+            });
+            const data = await res.json();
+            if (!res.ok && data && data.error) {
+                console.warn('Payment create error:', data.error);
+            }
+            return data;
+        }
+        try {
+            if (!window.paypal || !paypal.Buttons) {
+                document.getElementById('paypal-error').style.display = 'block';
+            } else {
+                const paypalButtons = paypal.Buttons({
+                    createOrder: function () {
+                        return fetch('/api/paypal/create-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({})
+                        })
+                        .then((res) => res.json())
+                        .then((data) => data.id);
+                    },
+                    onApprove: function (data) {
+                        return fetch('/api/paypal/capture-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ orderID: data.orderID })
+                        })
+                        .then((res) => res.json())
+                        .then((result) => {
+                            if (result && result.success && result.orderId) {
+                                window.location.href = '/checkout/success/' + result.orderId;
+                            } else {
+                                alert('Payment not completed.');
+                            }
+                        });
+                    },
+                    onError: function () {
+                        alert('PayPal payment failed. Please try again.');
+                    }
+                });
+
+                if (!paypalButtons) {
+                    document.getElementById('paypal-error').style.display = 'block';
+                } else {
+                    paypalButtons.render('#paypal-button-container');
+                }
+            }
+        } catch (err) {
+            console.error('PayPal render failed:', err);
+            document.getElementById('paypal-error').style.display = 'block';
+        }
+
+        async function topupWallet() {
+            const amount = parseFloat(document.getElementById('walletTopup').value || '0');
+            if (!amount || amount <= 0) {
+                document.getElementById('statusArea').textContent = 'Status: Enter a valid topup amount.';
+                return;
+            }
+            const res = await fetch('/api/payments/wallet/topup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount })
+            });
+            const data = await res.json();
+            if (data && data.balance !== undefined) {
+                document.getElementById('walletBalance').textContent = `$${Number(data.balance).toFixed(2)}`;
+                document.getElementById('statusArea').textContent = 'Status: Wallet topped up.';
+            }
+        }
+
+        document.getElementById('walletTopupBtn').addEventListener('click', topupWallet);
+
+        document.getElementById('netsBtn').addEventListener('click', async () => {
+            selectedProvider = 'NETS';
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to NETS QR...';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/nets/generate-qr';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cartTotal';
+            input.value = '<%= (total || 0).toFixed(2) %>';
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        document.getElementById('paynowBtn').addEventListener('click', async () => {
+            selectedProvider = 'PAYNOW';
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to PayNow QR...';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/paynow/generate-qr';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cartTotal';
+            input.value = '<%= (total || 0).toFixed(2) %>';
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        document.getElementById('stripeBtn').addEventListener('click', async () => {
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to Stripe...';
+            const data = await createPayment('STRIPE');
+            if (data && data.error) {
+                document.getElementById('statusArea').textContent = `Status: ${data.error}`;
+                return;
+            }
+            if (data && data.providerData && data.providerData.checkoutUrl) {
+                window.location.href = data.providerData.checkoutUrl;
+            } else {
+                document.getElementById('statusArea').textContent = 'Status: Stripe unavailable.';
+            }
+        });
+
+        document.getElementById('stripePaynowBtn').addEventListener('click', async () => {
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to PayNow...';
+            const data = await createPayment('STRIPE_PAYNOW');
+            if (data && data.error) {
+                document.getElementById('statusArea').textContent = `Status: ${data.error}`;
+                return;
+            }
+            if (data && data.providerData && data.providerData.checkoutUrl) {
+                window.location.href = data.providerData.checkoutUrl;
+            } else {
+                document.getElementById('statusArea').textContent = 'Status: PayNow unavailable.';
+            }
+        });
+
+        document.getElementById('stripeGpayBtn').addEventListener('click', async () => {
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to Google Pay...';
+            const data = await createPayment('STRIPE_GPAY');
+            if (data && data.error) {
+                document.getElementById('statusArea').textContent = `Status: ${data.error}`;
+                return;
+            }
+            if (data && data.providerData && data.providerData.checkoutUrl) {
+                window.location.href = data.providerData.checkoutUrl;
+            } else {
+                document.getElementById('statusArea').textContent = 'Status: Google Pay unavailable.';
+            }
+        });
     </script>
 </body>
 </html>
