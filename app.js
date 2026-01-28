@@ -49,7 +49,11 @@ app.use(express.static('public'));
 app.use(express.urlencoded({
     extended: false
 }));
-app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 //TO DO: Insert code for Session Middleware below 
 app.use(session({
@@ -70,7 +74,6 @@ const adminRoutes = require('./routes/adminRoutes');
 const paypal = require('./services/paypal');
 const checkoutController = require('./controllers/checkoutController');
 const netsQr = require('./services/nets');
-const paynowQr = require('./services/paynow');
 
 // Middleware to check if user is logged in
 const checkAuthenticated = (req, res, next) => {
@@ -175,7 +178,6 @@ app.post('/api/paypal/capture-order', checkAuthenticated, async (req, res) => {
 
 // NETS API routes
 app.post('/api/nets/generate-qr', checkAuthenticated, netsQr.generateQrCode);
-app.post('/api/paynow/generate-qr', checkAuthenticated, paynowQr.generateQrCode);
 app.get('/nets-qr/success', checkAuthenticated, (req, res) => {
     res.render('netsTxnSuccessStatus', { message: 'Transaction Successful!' });
 });

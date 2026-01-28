@@ -7,7 +7,8 @@ const providers = {
     WALLET: require('./providers/walletProvider'),
     STRIPE: require('./providers/stripeProvider'),
     STRIPE_PAYNOW: require('./providers/stripeProvider'),
-    STRIPE_GPAY: require('./providers/stripeProvider')
+    STRIPE_GPAY: require('./providers/stripeProvider'),
+    AIRWALLEX: require('./providers/airwallexProvider')
 };
 
 const queryAsync = (connection, sql, params) =>
@@ -126,6 +127,20 @@ async function createPayment({ connection, orderId, userId, provider, useWalletA
     }
     if (provider === 'STRIPE_GPAY') {
         providerOptions.methodTypes = ['card'];
+    }
+    if (provider === 'AIRWALLEX') {
+        providerOptions.paymentMethodType = 'airwallex_pay';
+        const userRows = await queryAsync(
+            connection,
+            'SELECT username, email FROM users WHERE id = ?',
+            [userId]
+        );
+        if (userRows.length > 0) {
+            providerOptions.customer = {
+                name: userRows[0].username,
+                email: userRows[0].email
+            };
+        }
     }
 
     const providerResult = await providers[provider].createPayment({

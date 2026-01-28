@@ -222,9 +222,25 @@
             border: 1px solid var(--line);
             background: #151b24;
             color: var(--text);
-            padding: 0.5rem 1rem;
+            padding: 0.7rem 1.1rem;
             border-radius: 10px;
             font-size: 0.85rem;
+            min-width: 170px;
+            min-height: 42px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        .ghost-btn:hover {
+            border-color: rgba(47, 107, 255, 0.7);
+            box-shadow: 0 10px 22px rgba(47, 107, 255, 0.18);
+            transform: translateY(-1px);
+        }
+        .ghost-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
         }
 
         .right h2 {
@@ -386,17 +402,6 @@
                         <button type="button" class="ghost-btn" id="netsBtn">Pay with NETS</button>
                     </div>
 
-                    <div class="method-card" data-provider="PAYNOW">
-                        <div class="method-info">
-                            <div class="method-icon">P</div>
-                            <div>
-                                <div class="method-title">PayNow</div>
-                                <div class="method-note">Simulated PayNow QR.</div>
-                            </div>
-                        </div>
-                        <button type="button" class="ghost-btn" id="paynowBtn">Pay with PayNow</button>
-                    </div>
-
                     <div class="method-card" data-provider="STRIPE">
                         <div class="method-info">
                             <div class="method-icon">S</div>
@@ -419,16 +424,17 @@
                         <button type="button" class="ghost-btn" id="stripePaynowBtn">PayNow</button>
                     </div>
 
-                    <div class="method-card" data-provider="STRIPE_GPAY">
+                    <div class="method-card" data-provider="AIRWALLEX">
                         <div class="method-info">
-                            <div class="method-icon">G</div>
+                            <div class="method-icon">A</div>
                             <div>
-                                <div class="method-title">Google Pay (Stripe)</div>
-                                <div class="method-note">Shows on supported devices.</div>
+                                <div class="method-title">Airwallex</div>
+                                <div class="method-note">Airwallex hosted checkout (sandbox).</div>
                             </div>
                         </div>
-                        <button type="button" class="ghost-btn" id="stripeGpayBtn">Google Pay</button>
+                        <button type="button" class="ghost-btn" id="airwallexBtn">Pay with Airwallex</button>
                     </div>
+
                 </div>
                 <div class="plan-card">
                     <div>
@@ -460,6 +466,10 @@
                 <h2>Payment</h2>
                 <p>Select a payment method on the left to continue.</p>
                 <div class="fine-print" id="statusArea">Status: Ready.</div>
+                <div id="airwallexQrWrap" style="display:none; margin-top:1rem;">
+                    <div class="method-note">Scan the QR with your banking app.</div>
+                    <img id="airwallexQrImg" alt="Airwallex QR" style="margin-top:0.75rem; max-width:240px; width:100%; height:auto; border-radius:12px; border:1px solid var(--line);" />
+                </div>
             </section>
         </div>
     </div>
@@ -570,21 +580,6 @@
             form.submit();
         });
 
-        document.getElementById('paynowBtn').addEventListener('click', async () => {
-            selectedProvider = 'PAYNOW';
-            document.getElementById('statusArea').textContent = 'Status: Redirecting to PayNow QR...';
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/api/paynow/generate-qr';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'cartTotal';
-            input.value = '<%= (total || 0).toFixed(2) %>';
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-        });
-
         document.getElementById('stripeBtn').addEventListener('click', async () => {
             document.getElementById('statusArea').textContent = 'Status: Redirecting to Stripe...';
             const data = await createPayment('STRIPE');
@@ -613,19 +608,28 @@
             }
         });
 
-        document.getElementById('stripeGpayBtn').addEventListener('click', async () => {
-            document.getElementById('statusArea').textContent = 'Status: Redirecting to Google Pay...';
-            const data = await createPayment('STRIPE_GPAY');
+        document.getElementById('airwallexBtn').addEventListener('click', async () => {
+            document.getElementById('statusArea').textContent = 'Status: Redirecting to Airwallex checkout...';
+            const data = await createPayment('AIRWALLEX');
             if (data && data.error) {
                 document.getElementById('statusArea').textContent = `Status: ${data.error}`;
                 return;
             }
             if (data && data.providerData && data.providerData.checkoutUrl) {
                 window.location.href = data.providerData.checkoutUrl;
-            } else {
-                document.getElementById('statusArea').textContent = 'Status: Google Pay unavailable.';
+                return;
             }
+            if (data && data.providerData && data.providerData.qrCode) {
+                const qrWrap = document.getElementById('airwallexQrWrap');
+                const qrImg = document.getElementById('airwallexQrImg');
+                qrImg.src = data.providerData.qrCode;
+                qrWrap.style.display = 'block';
+                document.getElementById('statusArea').textContent = 'Status: Scan the Airwallex QR code to complete payment.';
+                return;
+            }
+            document.getElementById('statusArea').textContent = 'Status: Airwallex unavailable.';
         });
+
     </script>
 </body>
 </html>

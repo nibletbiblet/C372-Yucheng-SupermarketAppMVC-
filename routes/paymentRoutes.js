@@ -14,6 +14,9 @@ router.post('/bank/submit', checkAuthenticated, paymentController.bankSubmit);
 router.post('/nets/qr', checkAuthenticated, paymentController.netsQr);
 router.post('/callback/paypal', checkAuthenticated, paymentController.paypalCallback);
 router.post('/callback/nets', checkAuthenticated, paymentController.netsCallback);
+router.get('/callback/airwallex', paymentController.airwallexCallback);
+router.get('/airwallex/status/:paymentIntentId', checkAuthenticated, paymentController.airwallexStatus);
+router.post('/webhook/airwallex', paymentController.airwallexWebhook);
 router.get('/callback/stripe', paymentController.stripeCallback);
 
 module.exports = router;
