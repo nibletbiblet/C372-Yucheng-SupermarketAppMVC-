@@ -14,22 +14,9 @@
         .nav-links { display:flex; gap:1rem; }
         .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
         .nav-links a:hover { background:#667eea; color:#fff; }
-        
+
         h1 { color:#333; margin-bottom:2rem; }
-        
-        .filters {
-            background:#fff;
-            padding:1.5rem;
-            border-radius:1rem;
-            margin-bottom:2rem;
-            display:flex;
-            gap:1rem;
-            align-items:center;
-        }
-        .filter-item { flex:1; }
-        .filter-item label { display:block; margin-bottom:.5rem; font-weight:600; color:#555; }
-        .filter-item select, .filter-item input { width:100%; padding:.7rem; border:2px solid #e2e8f0; border-radius:.5rem; }
-        
+
         .orders-table {
             background:#fff;
             border-radius:1rem;
@@ -41,7 +28,7 @@
         th { background:#667eea; color:#fff; padding:1rem; text-align:left; font-weight:600; }
         td { padding:1rem; border-bottom:1px solid #e2e8f0; }
         tr:hover { background:#f8fafc; }
-        
+
         .status-badge {
             padding:.4rem .8rem;
             border-radius:.5rem;
@@ -51,7 +38,7 @@
         .status-pending { background:#fef3c7; color:#92400e; }
         .status-completed { background:#d1fae5; color:#065f46; }
         .status-cancelled { background:#fee2e2; color:#991b1b; }
-        
+
         .btn-view {
             padding:.5rem 1rem;
             background:#667eea;
@@ -70,12 +57,13 @@
     <nav class="nav">
         <div class="container">
             <div class="nav-content">
-                <div class="logo">🛒 FreshMarket Admin</div>
+                <div class="logo">?? FreshMarket Admin</div>
                 <div class="nav-links">
                     <a href="/admin/dashboard">Dashboard</a>
                     <a href="/inventory">Inventory</a>
                     <a href="/admin/users">Users</a>
                     <a href="/admin/orders">Orders</a>
+                    <a href="/admin/refunds/requests">Refunds</a>
                     <a href="/logout">Logout</a>
                 </div>
             </div>
@@ -83,8 +71,8 @@
     </nav>
 
     <div class="container">
-        <h1>🛍️ Manage Orders</h1>
-        
+        <h1>??? Manage Orders</h1>
+
         <div class="orders-table">
             <h2 style="margin-bottom:1.5rem;">All Orders</h2>
             <table>
@@ -95,7 +83,9 @@
                         <th>Date</th>
                         <th>Total</th>
                         <th>Items</th>
-                        <th>Status</th>
+                        <th>Order Status</th>
+                        <th>Payment Status</th>
+                        <th>Refund Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -109,17 +99,23 @@
                                 <td><strong>$<%= parseFloat(order.total_price).toFixed(2) %></strong></td>
                                 <td><%= order.item_count %> items</td>
                                 <td>
-                                    <span class="status-badge status-pending">Pending</span>
+                                    <span class="status-badge status-pending"><%= order.status %></span>
                                 </td>
                                 <td>
-                                    <a href="/checkout/invoice/<%= order.order_id %>" class="btn-view">📄 View Details</a>
+                                    <span class="status-badge status-completed"><%= order.payment_status || 'N/A' %></span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-cancelled"><%= order.refund_status || 'NONE' %></span>
+                                </td>
+                                <td>
+                                    <a href="/checkout/invoice/<%= order.order_id %>" class="btn-view">?? View Details</a>
                                 </td>
                             </tr>
                         <% }); %>
                     <% } else { %>
                         <tr>
-                            <td colspan="7" style="text-align:center;padding:3rem;color:#999;">
-                                📦 No orders yet
+                            <td colspan="9" style="text-align:center;padding:3rem;color:#999;">
+                                ?? No orders yet
                             </td>
                         </tr>
                     <% } %>

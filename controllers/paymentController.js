@@ -40,12 +40,14 @@ async function createOrderFromCart(connection, req) {
 
     const userId = req.session.user.id;
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    req.session.lastOrderTotal = total;
 
     await beginTransactionAsync(connection);
     try {
         const orderSql = 'INSERT INTO orders (user_id, total_price, status) VALUES (?, ?, ?)';
         const orderResult = await queryAsync(connection, orderSql, [userId, total, 'PENDING']);
         const orderId = orderResult.insertId;
+        req.session.lastOrderId = orderId;
 
         for (const item of cart) {
             const rows = await queryAsync(connection, 'SELECT quantity FROM products WHERE id = ?', [item.id]);

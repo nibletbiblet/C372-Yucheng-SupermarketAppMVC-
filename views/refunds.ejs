@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Requests - FreshMarket</title>
+    <link rel="stylesheet" href="/css/themes.css?v=1">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: 'Segoe UI', system-ui, sans-serif; color:#1f2937; }
+        .page { width: 92%; max-width: 1100px; margin: 0 auto; padding: 2.5rem 0; }
+        .header { display:flex; align-items:center; justify-content:space-between; background: var(--card-bg); padding:1.5rem 2rem; border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+        .title { font-size:1.4rem; font-weight:700; color: var(--accent-color); }
+        .card { background: var(--card-bg); border-radius:16px; padding:1.5rem; margin-top:1.5rem; box-shadow:0 10px 30px rgba(0,0,0,.08); }
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; }
+        label { font-size:0.85rem; color:#6b7280; }
+        input, textarea { width:100%; padding:0.75rem 0.9rem; border-radius:12px; border:1px solid #e5e7eb; margin-top:0.4rem; }
+        textarea { min-height:110px; resize: vertical; }
+        .btn { background: var(--accent-color); color:#fff; border:none; padding:0.7rem 1.2rem; border-radius:10px; cursor:pointer; font-weight:600; }
+        table { width:100%; border-collapse:collapse; font-size:0.95rem; }
+        th, td { padding:0.75rem; border-bottom:1px solid #e5e7eb; text-align:left; }
+        .badge { padding:0.25rem 0.6rem; border-radius:999px; font-size:0.8rem; font-weight:600; }
+        .badge.pending { background:#fef3c7; color:#92400e; }
+        .badge.approved { background:#dcfce7; color:#166534; }
+        .badge.denied { background:#fee2e2; color:#991b1b; }
+        .alert { padding:0.75rem 1rem; border-radius:10px; margin-top:1rem; }
+        .alert.error { background:#fee2e2; color:#991b1b; }
+        .alert.success { background:#dcfce7; color:#166534; }
+        .muted { color:#6b7280; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body class="<%= user && user.role === 'admin' ? 'admin-theme' : 'user-theme' %>">
+    <div class="page">
+        <div class="header">
+            <div class="title">Refund Requests</div>
+            <a class="btn" href="/shopping">Continue Shopping</a>
+        </div>
+
+        <% if (errors && errors.length) { %>
+            <div class="alert error"><%= errors[0] %></div>
+        <% } %>
+        <% if (messages && messages.length) { %>
+            <div class="alert success"><%= messages[0] %></div>
+        <% } %>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Request a refund</h3>
+                <form action="/refunds/request" method="POST">
+                    <div style="margin-top:1rem;">
+                        <label for="orderId">Order ID</label>
+                        <input id="orderId" name="orderId" type="number" min="1" placeholder="e.g. 123" required>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        <label for="amount">Amount</label>
+                        <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        <label for="reason">Reason</label>
+                        <textarea id="reason" name="reason" placeholder="Please describe the issue" required></textarea>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        <button class="btn" type="submit">Submit request</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Your recent orders</h3>
+                <% if (orders && orders.length) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td>#<%= order.order_id %></td>
+                                    <td>$<%= parseFloat(order.total_price).toFixed(2) %></td>
+                                    <td><%= order.status %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div class="muted">No recent orders.</div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>My refund requests</h3>
+            <% if (requests && requests.length) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% requests.forEach(reqItem => { %>
+                            <tr>
+                                <td>#<%= reqItem.order_id %></td>
+                                <td>$<%= parseFloat(reqItem.requested_amount).toFixed(2) %></td>
+                                <td>
+                                    <span class="badge <%= reqItem.status.toLowerCase() %>"><%= reqItem.status %></span>
+                                </td>
+                                <td><%= reqItem.created_at ? new Date(reqItem.created_at).toLocaleDateString() : 'N/A' %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div class="muted">No refund requests yet.</div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

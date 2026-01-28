@@ -7,8 +7,7 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0f7fa 0%, #e1bee7 100%); display:flex; min-height:100vh; }
-        
-        /* Sidebar */
+
         .sidebar {
             width: 250px;
             background: #fff;
@@ -37,8 +36,7 @@
             border-left: 4px solid #667eea;
         }
         .nav-icon { font-size: 1.3rem; margin-right: .8rem; }
-        
-        /* Main Content */
+
         .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
         .header {
             background: #fff;
@@ -52,11 +50,10 @@
         }
         .welcome { font-size: 1.8rem; color: #333; }
         .user-info { display: flex; align-items: center; gap: 1rem; }
-        
-        /* Stats Cards */
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -86,8 +83,7 @@
         .stat-icon.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
         .stat-info h3 { color: #64748b; font-size: .9rem; font-weight: 600; margin-bottom: .3rem; }
         .stat-info .value { font-size: 2rem; font-weight: 700; color: #333; }
-        
-        /* Charts Section */
+
         .charts-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -101,8 +97,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,.08);
         }
         .chart-title { font-size: 1.2rem; color: #333; margin-bottom: 1.5rem; font-weight: 700; }
-        
-        /* Recent Activity */
+
         .activity-item {
             padding: 1rem;
             border-bottom: 1px solid #f1f5f9;
@@ -120,8 +115,7 @@
             justify-content: center;
             background: #f8fafc;
         }
-        
-        /* Quick Actions */
+
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -141,7 +135,7 @@
             text-align: center;
         }
         .action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,.4); }
-        
+
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; }
@@ -151,72 +145,83 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo">🛒 FreshMarket Admin</div>
+        <div class="logo">?? FreshMarket Admin</div>
         <a href="/admin/dashboard" class="nav-item active">
-            <span class="nav-icon">📊</span> Dashboard
+            <span class="nav-icon">??</span> Dashboard
         </a>
         <a href="/inventory" class="nav-item">
-            <span class="nav-icon">📦</span> Inventory
+            <span class="nav-icon">??</span> Inventory
         </a>
         <a href="/admin/users" class="nav-item">
-            <span class="nav-icon">👥</span> Manage Users
+            <span class="nav-icon">??</span> Manage Users
+        </a>
+        <a href="/admin/orders" class="nav-item">
+            <span class="nav-icon">??</span> Orders
+        </a>
+        <a href="/admin/refunds/requests" class="nav-item">
+            <span class="nav-icon">??</span> Refunds
         </a>
         <a href="/" class="nav-item">
-            <span class="nav-icon">🏠</span> Home
+            <span class="nav-icon">??</span> Home
         </a>
         <a href="/logout" class="nav-item">
-            <span class="nav-icon">🚪</span> Logout
+            <span class="nav-icon">??</span> Logout
         </a>
     </div>
 
     <div class="main-content">
         <div class="header">
-            <h1 class="welcome">Welcome back, <%= user.username %>! 👋</h1>
+            <h1 class="welcome">Welcome back, <%= user.username %>! ??</h1>
             <div class="user-info">
                 <span style="color:#64748b;">Admin Panel</span>
             </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon blue">👥</div>
+                <div class="stat-icon blue">??</div>
                 <div class="stat-info">
                     <h3>Total Users</h3>
                     <div class="value"><%= stats.totalUsers %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon green">📦</div>
+                <div class="stat-icon green">??</div>
                 <div class="stat-info">
                     <h3>Total Products</h3>
                     <div class="value"><%= stats.totalProducts %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon orange">🛍️</div>
+                <div class="stat-icon orange">???</div>
                 <div class="stat-info">
                     <h3>Total Orders</h3>
                     <div class="value"><%= stats.totalOrders %></div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon red">💰</div>
+                <div class="stat-icon red">??</div>
                 <div class="stat-info">
                     <h3>Total Revenue</h3>
                     <div class="value">$<%= stats.totalRevenue.toFixed(2) %></div>
                 </div>
             </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">??</div>
+                <div class="stat-info">
+                    <h3>Pending Refunds</h3>
+                    <div class="value"><%= stats.pendingRefunds %></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Charts -->
         <div class="charts-grid">
             <div class="chart-card">
                 <h2 class="chart-title">Recent Orders</h2>
                 <% if (recentOrders.length > 0) { %>
                     <% recentOrders.forEach(order => { %>
                         <div class="activity-item">
-                            <div class="activity-icon">🛍️</div>
+                            <div class="activity-icon">???</div>
                             <div style="flex:1;">
                                 <strong>Order #<%= order.order_id %></strong>
                                 <p style="color:#64748b;font-size:.9rem;"><%= order.username %> - $<%= parseFloat(order.total_price).toFixed(2) %></p>
@@ -234,7 +239,7 @@
                 <% if (lowStockProducts.length > 0) { %>
                     <% lowStockProducts.forEach(product => { %>
                         <div class="activity-item">
-                            <div class="activity-icon">⚠️</div>
+                            <div class="activity-icon">??</div>
                             <div style="flex:1;">
                                 <strong><%= product.productName %></strong>
                                 <p style="color:#ef4444;font-size:.9rem;">Only <%= product.quantity %> left</p>
@@ -242,18 +247,36 @@
                         </div>
                     <% }); %>
                 <% } else { %>
-                    <p style="text-align:center;color:#999;padding:2rem;">All products in stock ✅</p>
+                    <p style="text-align:center;color:#999;padding:2rem;">All products in stock ?</p>
                 <% } %>
             </div>
         </div>
 
-        <!-- Quick Actions -->
+        <% const recentRefundsSafe = typeof recentRefunds !== 'undefined' ? recentRefunds : []; %>
+        <div class="chart-card" style="margin-bottom:2rem;">
+            <h2 class="chart-title">Latest Refund Requests</h2>
+            <% if (recentRefundsSafe && recentRefundsSafe.length > 0) { %>
+                <% recentRefundsSafe.forEach(refund => { %>
+                    <div class="activity-item">
+                        <div class="activity-icon">??</div>
+                        <div style="flex:1;">
+                            <strong>Order #<%= refund.order_id %></strong>
+                            <p style="color:#64748b;font-size:.9rem;"><%= refund.username %> - $<%= parseFloat(refund.requested_amount).toFixed(2) %></p>
+                        </div>
+                        <small style="color:#999;"><%= refund.created_at ? new Date(refund.created_at).toLocaleDateString() : 'N/A' %></small>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p style="text-align:center;color:#999;padding:2rem;">No refund requests yet</p>
+            <% } %>
+        </div>
+
         <div class="chart-card">
             <h2 class="chart-title">Quick Actions</h2>
             <div class="quick-actions">
-                <a href="/addProduct" class="action-btn">➕ Add Product</a>
-                <a href="/inventory" class="action-btn">📦 View Inventory</a>
-                <a href="/admin/users" class="action-btn">👥 Manage Users</a>
+                <a href="/addProduct" class="action-btn">? Add Product</a>
+                <a href="/inventory" class="action-btn">?? View Inventory</a>
+                <a href="/admin/users" class="action-btn">?? Manage Users</a>
             </div>
         </div>
     </div>

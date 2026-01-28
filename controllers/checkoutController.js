@@ -216,16 +216,34 @@ exports.placeOrder = (req, res) => {
 };
 
 exports.orderSuccess = (req, res) => {
+    const connection = req.app.locals.connection;
     const orderId = req.params.orderId;
-    const totalAmount = req.session.lastOrderTotal || 0;
-    
-    res.render('success', {
-        user: req.session.user,
-        orderId: orderId,
-        totalAmount: totalAmount
-    });
-    
-    delete req.session.lastOrderTotal;
+    const sessionTotal = req.session.lastOrderTotal;
+    const sessionOrderId = req.session.lastOrderId;
+
+    if (sessionTotal && String(sessionOrderId) === String(orderId)) {
+        res.render('success', {
+            user: req.session.user,
+            orderId: orderId,
+            totalAmount: sessionTotal
+        });
+        delete req.session.lastOrderTotal;
+        delete req.session.lastOrderId;
+        return;
+    }
+
+    connection.query(
+        'SELECT total_price FROM orders WHERE order_id = ?',
+        [orderId],
+        (err, rows) => {
+            const totalAmount = !err && rows && rows.length > 0 ? parseFloat(rows[0].total_price || 0) : 0;
+            res.render('success', {
+                user: req.session.user,
+                orderId: orderId,
+                totalAmount: totalAmount
+            });
+        }
+    );
 };
 
 exports.viewInvoice = (req, res) => {

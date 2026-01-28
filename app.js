@@ -71,8 +71,10 @@ const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const refundRoutes = require('./routes/refundRoutes');
 const paypal = require('./services/paypal');
 const checkoutController = require('./controllers/checkoutController');
+const adminController = require('./controllers/adminController');
 const netsQr = require('./services/nets');
 
 // Middleware to check if user is logged in
@@ -137,6 +139,7 @@ app.use('/cart', cartRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/admin', adminRoutes);
+app.use('/refunds', refundRoutes);
 
 // PayPal API routes
 app.post('/api/paypal/create-order', checkAuthenticated, async (req, res) => {
@@ -652,23 +655,43 @@ app.get('/admin/dashboard', checkAuthenticated, checkAdmin, (req, res) => {
                         JOIN users u ON o.user_id = u.id 
                         ORDER BY o.order_id DESC LIMIT 5
                     `, (err, recentOrders) => {
-                        res.render('adminDashboard', {
-                            user: req.session.user,
-                            stats: {
-                                totalUsers: userCount[0].count,
-                                totalProducts: productCount[0].count,
-                                totalOrders: orderStats[0].count || 0,
-                                totalRevenue: parseFloat(orderStats[0].revenue) || 0
-                            },
-                            lowStockProducts: lowStock,
-                            recentOrders: recentOrders
-                        });
+                        connection.query(
+                            "SELECT COUNT(*) as count FROM refund_requests WHERE status = 'PENDING'",
+                            (err, pendingRefunds) => {
+                                connection.query(
+                                    `SELECT rr.*, u.username 
+                                     FROM refund_requests rr
+                                     JOIN users u ON rr.user_id = u.id
+                                     ORDER BY rr.created_at DESC
+                                     LIMIT 5`,
+                                    (err, recentRefunds) => {
+                                        res.render('adminDashboard', {
+                                            user: req.session.user,
+                                            stats: {
+                                                totalUsers: userCount[0].count,
+                                                totalProducts: productCount[0].count,
+                                                totalOrders: orderStats[0].count || 0,
+                                                totalRevenue: parseFloat(orderStats[0].revenue) || 0,
+                                                pendingRefunds: pendingRefunds && pendingRefunds[0] ? pendingRefunds[0].count : 0
+                                            },
+                                            lowStockProducts: lowStock,
+                                            recentOrders: recentOrders,
+                                            recentRefunds: recentRefunds || []
+                                        });
+                                    }
+                                );
+                            }
+                        );
                     });
                 });
             });
         });
     });
 });
+
+app.get('/admin/orders', checkAuthenticated, checkAdmin, adminController.ordersPage);
+app.get('/admin/refunds/requests', checkAuthenticated, checkAdmin, adminController.refundRequestsPage);
+app.post('/admin/refunds/requests/:id/decision', checkAuthenticated, checkAdmin, adminController.decideRefundRequest);
 
 // Manage Users
 app.get('/admin/users', checkAuthenticated, checkAdmin, (req, res) => {

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Requests - FreshMarket Admin</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: 'Segoe UI', system-ui, sans-serif; background:#f8fafc; color:#1f2937; }
+        .nav { background:#fff; padding:1rem 0; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+        .container { width:90%; max-width:1400px; margin:2rem auto; }
+        .nav-content { display:flex; justify-content:space-between; align-items:center; }
+        .logo { font-size:1.5rem; font-weight:900; color:#667eea; }
+        .nav-links { display:flex; gap:1rem; }
+        .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; }
+        .nav-links a:hover { background:#667eea; color:#fff; }
+        .card { background:#fff; border-radius:1rem; padding:2rem; box-shadow:0 4px 15px rgba(0,0,0,.08); }
+        table { width:100%; border-collapse:collapse; }
+        th { background:#667eea; color:#fff; padding:1rem; text-align:left; }
+        td { padding:1rem; border-bottom:1px solid #e2e8f0; vertical-align: top; }
+        .badge { padding:.3rem .7rem; border-radius:.5rem; font-size:.85rem; font-weight:600; }
+        .badge.pending { background:#fef3c7; color:#92400e; }
+        .btn { padding:.5rem 1rem; border:none; border-radius:.5rem; cursor:pointer; font-weight:600; }
+        .btn-approve { background:#10b981; color:#fff; }
+        .btn-deny { background:#ef4444; color:#fff; }
+        .note-input { width:100%; padding:.5rem; border:1px solid #e2e8f0; border-radius:.5rem; }
+        .alert { padding:.75rem 1rem; border-radius:.5rem; margin-bottom:1rem; }
+        .alert.error { background:#fee2e2; color:#991b1b; }
+        .alert.success { background:#dcfce7; color:#166534; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">?? FreshMarket Admin</div>
+                <div class="nav-links">
+                    <a href="/admin/dashboard">Dashboard</a>
+                    <a href="/inventory">Inventory</a>
+                    <a href="/admin/users">Users</a>
+                    <a href="/admin/orders">Orders</a>
+                    <a href="/admin/refunds/requests">Refunds</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Refund Requests</h1>
+        <% if (errors && errors.length) { %>
+            <div class="alert error"><%= errors[0] %></div>
+        <% } %>
+        <% if (messages && messages.length) { %>
+            <div class="alert success"><%= messages[0] %></div>
+        <% } %>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Reason</th>
+                        <th>Requested</th>
+                        <th>Admin Note</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (requests && requests.length) { %>
+                        <% requests.forEach(reqItem => { %>
+                            <tr>
+                                <td>#<%= reqItem.order_id %></td>
+                                <td><strong><%= reqItem.username %></strong><br><small><%= reqItem.email %></small></td>
+                                <td>$<%= parseFloat(reqItem.requested_amount).toFixed(2) %></td>
+                                <td><%= reqItem.reason %></td>
+                                <td><%= reqItem.created_at ? new Date(reqItem.created_at).toLocaleString() : 'N/A' %></td>
+                                <td>
+                                    <form action="/admin/refunds/requests/<%= reqItem.id %>/decision" method="POST">
+                                        <input class="note-input" type="text" name="adminNote" placeholder="Optional note">
+                                </td>
+                                <td>
+                                        <button class="btn btn-approve" type="submit" name="decision" value="APPROVE">Approve</button>
+                                        <button class="btn btn-deny" type="submit" name="decision" value="DENY">Deny</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">
+                                No pending refund requests.
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
