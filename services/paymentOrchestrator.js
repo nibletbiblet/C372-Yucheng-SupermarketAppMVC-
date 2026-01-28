@@ -78,32 +78,41 @@ async function createPayment({ connection, orderId, userId, provider, useWalletA
         [escrowRequired ? 1 : 0, orderId]
     );
 
-    const walletAmount = Math.max(0, Math.min(useWalletAmount || 0, orderTotal));
+    const requestedWallet = Math.max(0, parseFloat(useWalletAmount || 0));
+    let walletBalance = 0;
+    let walletApplied = 0;
+    let walletShortfall = 0;
     let remaining = orderTotal;
 
-    if (walletAmount > 0) {
-        await walletService.debit(
-            connection,
-            userId,
-            walletAmount,
-            { orderId, note: 'Split payment wallet portion' }
-        );
+    if (requestedWallet > 0) {
+        walletBalance = await walletService.getBalance(connection, userId);
+        walletApplied = Math.min(requestedWallet, walletBalance, orderTotal);
+        walletShortfall = Math.max(0, requestedWallet - walletBalance);
 
-        await queryAsync(
-            connection,
-            `INSERT INTO payments
-             (order_id, user_id, provider, amount, currency, status, escrow_status, metadata_json)
-             VALUES (?, ?, 'WALLET', ?, 'SGD', 'SUCCEEDED', ?, ?)`,
-            [
-                orderId,
+        if (walletApplied > 0) {
+            await walletService.debit(
+                connection,
                 userId,
-                walletAmount,
-                escrowRequired ? 'HELD' : 'NONE',
-                JSON.stringify({ split: true })
-            ]
-        );
+                walletApplied,
+                { orderId, note: 'Split payment wallet portion' }
+            );
 
-        remaining = parseFloat((orderTotal - walletAmount).toFixed(2));
+            await queryAsync(
+                connection,
+                `INSERT INTO payments
+                 (order_id, user_id, provider, amount, currency, status, escrow_status, metadata_json)
+                 VALUES (?, ?, 'WALLET', ?, 'SGD', 'SUCCEEDED', ?, ?)`,
+                [
+                    orderId,
+                    userId,
+                    walletApplied,
+                    escrowRequired ? 'HELD' : 'NONE',
+                    JSON.stringify({ split: true })
+                ]
+            );
+
+            remaining = parseFloat((orderTotal - walletApplied).toFixed(2));
+        }
     }
 
     if (remaining <= 0) {
@@ -112,6 +121,9 @@ async function createPayment({ connection, orderId, userId, provider, useWalletA
             orderId,
             provider: 'WALLET',
             remaining: 0,
+            walletBalance,
+            walletApplied,
+            walletShortfall,
             escrowRequired,
             risk
         };
@@ -173,6 +185,9 @@ async function createPayment({ connection, orderId, userId, provider, useWalletA
         orderId,
         provider,
         remaining,
+        walletBalance,
+        walletApplied,
+        walletShortfall,
         escrowRequired,
         risk,
         providerData: providerResult

@@ -30,6 +30,27 @@
         .nav-links { display:flex; gap:1rem; align-items:center; }
         .nav-links a { color:#333; text-decoration:none; font-weight:600; padding:.5rem 1rem; border-radius:.5rem; transition:all .2s; }
         .nav-links a:hover { background:#667eea; color:#fff; }
+        .wallet-pill {
+            display:inline-flex;
+            align-items:center;
+            gap:.5rem;
+            padding:.45rem .9rem;
+            border-radius:999px;
+            background:#f8fafc;
+            border:1px solid #e2e8f0;
+            color:#0f172a;
+            font-weight:700;
+            transition:all .2s;
+        }
+        .wallet-pill:hover { background:#eef2ff; border-color:#c7d2fe; color:#4f46e5; }
+        .wallet-badge {
+            background:#eef2ff;
+            color:#4f46e5;
+            padding:.15rem .45rem;
+            border-radius:999px;
+            font-weight:800;
+            font-size:.85rem;
+        }
         .cart-badge { position:relative; }
         .cart-count { position:absolute; top:-8px; right:-8px; background:#ef4444; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700; }
         
@@ -287,6 +308,9 @@
                 <div class="logo">🛒 FreshMarket</div>
                 <div class="nav-links">
                     <a href="/">Home</a>
+                    <a href="/checkout/payment" class="wallet-pill" id="navWalletPill" title="E-Wallet balance">
+                        E-Wallet <span class="wallet-badge" id="navWalletAmount">$0.00</span>
+                    </a>
                     <a href="/shopping">Shop</a>
                     <a href="/cart" class="cart-badge">
                         Cart
@@ -387,6 +411,21 @@
     </div>
 
     <script>
+        async function updateNavWalletBalance() {
+            const amountEl = document.getElementById('navWalletAmount');
+            if (!amountEl) return;
+            try {
+                const res = await fetch('/api/payments/wallet/balance');
+                const data = await res.json();
+                if (data && data.balance !== undefined) {
+                    amountEl.textContent = `$${Number(data.balance).toFixed(2)}`;
+                }
+            } catch (err) {
+                // Silent fail to avoid breaking UX if API is unavailable
+            }
+        }
+        updateNavWalletBalance();
+
         // Sort functionality
         const sortSelect = document.getElementById('sortSelect');
         const productsGrid = document.getElementById('productsGrid');

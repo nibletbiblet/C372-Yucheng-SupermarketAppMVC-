@@ -69,6 +69,17 @@
             <section class="panel right">
                 <div class="section-title">Payment Methods</div>
                 <div class="method-list">
+                    <div class="method-card" data-provider="WALLET">
+                        <div class="method-info">
+                            <div class="method-icon">W</div>
+                            <div>
+                                <div class="method-title">E-Wallet</div>
+                                <div class="method-note">Pay instantly with your wallet balance.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn ghost-btn" id="walletPayBtn">Pay with Wallet</button>
+                    </div>
+
                     <div class="method-card" data-provider="PAYPAL">
                         <div class="method-info">
                             <div class="method-icon">P</div>
@@ -145,10 +156,33 @@
             const res = await fetch('/api/payments/wallet/balance');
             const data = await res.json();
             if (data && data.balance !== undefined) {
-                document.getElementById('walletBalance').textContent = `$${Number(data.balance).toFixed(2)}`;
+                const balance = Number(data.balance);
+                document.getElementById('walletBalance').textContent = `$${balance.toFixed(2)}`;
+                window.__walletBalance = balance;
             }
         }
         fetchWalletBalance();
+
+        function setStatus(message) {
+            const statusEl = document.getElementById('statusArea');
+            if (statusEl) statusEl.textContent = `Status: ${message}`;
+        }
+
+        function explainWalletUsage(data) {
+            if (!data) return;
+            const applied = Number(data.walletApplied || 0);
+            const shortfall = Number(data.walletShortfall || 0);
+            const remaining = Number(data.remaining || 0);
+            if (applied > 0 && remaining > 0) {
+                setStatus(`Wallet applied $${applied.toFixed(2)}. Remaining $${remaining.toFixed(2)}.`);
+            } else if (applied > 0 && remaining <= 0) {
+                setStatus(`Wallet paid $${applied.toFixed(2)}. Order complete.`);
+            } else if (shortfall > 0) {
+                setStatus(`Wallet balance is too low by $${shortfall.toFixed(2)}. Choose another method.`);
+            }
+        }
+
+        const orderTotal = parseFloat('<%= (total || 0).toFixed(2) %>');
 
         async function createPayment(provider) {
             let walletUse = parseFloat(document.getElementById('walletUse').value || '0');
@@ -162,41 +196,66 @@
             });
             const data = await res.json();
             if (!res.ok && data && data.error) {
+                setStatus(data.error);
                 console.warn('Payment create error:', data.error);
             }
+            explainWalletUsage(data);
             return data;
         }
+
+        document.getElementById('walletPayBtn').addEventListener('click', async () => {
+            const balance = Number(window.__walletBalance || 0);
+            if (balance < orderTotal) {
+                setStatus(`Wallet has $${balance.toFixed(2)}. You need $${(orderTotal - balance).toFixed(2)} more.`);
+                return;
+            }
+            document.getElementById('walletUse').value = orderTotal.toFixed(2);
+            const data = await createPayment('PAYPAL');
+            if (data && data.remaining <= 0 && data.orderId) {
+                setStatus('Wallet covered the full amount. Redirecting...');
+                window.location.href = '/checkout/success/' + data.orderId;
+            }
+        });
         try {
             if (!window.paypal || !paypal.Buttons) {
                 document.getElementById('paypal-error').style.display = 'block';
             } else {
                 const paypalButtons = paypal.Buttons({
                     createOrder: function () {
-                        return fetch('/api/paypal/create-order', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({})
-                        })
-                        .then((res) => res.json())
-                        .then((data) => data.id);
+                        return createPayment('PAYPAL')
+                            .then((data) => {
+                                if (!data || data.error) {
+                                    throw new Error(data && data.error ? data.error : 'Payment creation failed');
+                                }
+                                if (Number(data.remaining || 0) <= 0) {
+                                    setStatus('Wallet covered the full amount. Redirecting...');
+                                    window.location.href = '/checkout/success/' + data.orderId;
+                                    throw new Error('WALLET_PAID');
+                                }
+                                if (!data.providerData || !data.providerData.providerRef) {
+                                    throw new Error('PayPal unavailable.');
+                                }
+                                return data.providerData.providerRef;
+                            });
                     },
                     onApprove: function (data) {
-                        return fetch('/api/paypal/capture-order', {
+                        return fetch('/api/payments/callback/paypal', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ orderID: data.orderID })
+                            body: JSON.stringify({ providerRef: data.orderID })
                         })
                         .then((res) => res.json())
                         .then((result) => {
                             if (result && result.success && result.orderId) {
                                 window.location.href = '/checkout/success/' + result.orderId;
                             } else {
-                                alert('Payment not completed.');
+                                setStatus('Payment not completed.');
                             }
                         });
                     },
-                    onError: function () {
-                        alert('PayPal payment failed. Please try again.');
+                    onError: function (err) {
+                        if (err && err.message === 'WALLET_PAID') return;
+                        setStatus('PayPal payment failed. Please try again.');
                     }
                 });
 
@@ -214,7 +273,7 @@
         async function topupWallet() {
             const amount = parseFloat(document.getElementById('walletTopup').value || '0');
             if (!amount || amount <= 0) {
-                document.getElementById('statusArea').textContent = 'Status: Enter a valid topup amount.';
+                setStatus('Enter a valid topup amount.');
                 return;
             }
             const res = await fetch('/api/payments/wallet/topup', {
@@ -224,14 +283,26 @@
             });
             const data = await res.json();
             if (data && data.balance !== undefined) {
-                document.getElementById('walletBalance').textContent = `$${Number(data.balance).toFixed(2)}`;
-                document.getElementById('statusArea').textContent = 'Status: Wallet topped up.';
+                const balance = Number(data.balance);
+                document.getElementById('walletBalance').textContent = `$${balance.toFixed(2)}`;
+                window.__walletBalance = balance;
+                setStatus('Wallet topped up.');
             }
         }
 
         document.getElementById('walletTopupBtn').addEventListener('click', topupWallet);
         document.getElementById('walletApplyBtn').addEventListener('click', () => {
-            document.getElementById('statusArea').textContent = 'Status: Wallet amount will be applied.';
+            const walletUse = parseFloat(document.getElementById('walletUse').value || '0');
+            const balance = Number(window.__walletBalance || 0);
+            if (!walletUse || walletUse <= 0) {
+                setStatus('Enter a wallet amount to apply.');
+                return;
+            }
+            if (walletUse > balance) {
+                setStatus(`Wallet has $${balance.toFixed(2)}. We will apply that amount.`);
+            } else {
+                setStatus(`Wallet amount $${walletUse.toFixed(2)} will be applied.`);
+            }
         });
 
         document.getElementById('netsBtn').addEventListener('click', async () => {
