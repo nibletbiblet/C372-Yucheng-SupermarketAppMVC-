@@ -39,7 +39,14 @@
             font-size:.9rem;
         }
         .status-pending { background:#fef3c7; color:#92400e; }
-        .status-completed { background:#d1fae5; color:#065f46; }
+        .status-paid, .status-held { background:#d1fae5; color:#065f46; }
+        .status-refunded { background:#e0f2fe; color:#075985; }
+        .status-partial_refunded { background:#cffafe; color:#155e75; }
+        .status-cancelled { background:#fee2e2; color:#991b1b; }
+        .order-actions { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-top:1rem; }
+        .btn-secondary { background:#eef2ff; color:#667eea; }
+        .btn-secondary:hover { background:#e0e7ff; color:#4c51bf; }
+        .order-meta { color:#6b7280; margin-top:.5rem; font-size:.9rem; }
         
         .btn { padding:.7rem 1.5rem; background:#667eea; color:#fff; border:none; border-radius:.5rem; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; transition:all .3s; }
         .btn:hover { background:#764ba2; transform:translateY(-2px); }
@@ -89,10 +96,18 @@
                             </div>
                             <div style="text-align:right">
                                 <div class="order-total">$<%= parseFloat(order.total_price || 0).toFixed(2) %></div>
-                                <span class="order-status status-pending">Pending</span>
+                                <% const statusRaw = String(order.status || 'PENDING').toUpperCase(); %>
+                                <span class="order-status status-<%= statusRaw.toLowerCase() %>"><%= statusRaw %></span>
                             </div>
                         </div>
-                        <a href="/checkout/invoice/<%= order.order_id %>" class="btn">View Details</a>
+                        <% const refundableStatuses = ['PAID', 'HELD', 'PARTIAL_REFUNDED']; %>
+                        <div class="order-meta">
+                            Refund eligibility: <strong><%= refundableStatuses.includes(statusRaw) ? 'Eligible' : 'Not eligible' %></strong>
+                        </div>
+                        <div class="order-actions">
+                            <a href="/checkout/invoice/<%= order.order_id %>" class="btn">View Details</a>
+                            <a href="/refunds?orderId=<%= order.order_id %>" class="btn btn-secondary">Request Refund</a>
+                        </div>
                     </div>
                 <% }); %>
             </div>

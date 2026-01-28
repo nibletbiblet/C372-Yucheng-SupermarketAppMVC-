@@ -19,13 +19,15 @@
         .btn { background: var(--accent-color); color:#fff; border:none; padding:0.7rem 1.2rem; border-radius:10px; cursor:pointer; font-weight:600; }
         table { width:100%; border-collapse:collapse; font-size:0.95rem; }
         th, td { padding:0.75rem; border-bottom:1px solid #e5e7eb; text-align:left; }
+        .order-row:hover { background:#f8fafc; }
         .badge { padding:0.25rem 0.6rem; border-radius:999px; font-size:0.8rem; font-weight:600; }
         .badge.pending { background:#fef3c7; color:#92400e; }
         .badge.approved { background:#dcfce7; color:#166534; }
         .badge.denied { background:#fee2e2; color:#991b1b; }
         .alert { padding:0.75rem 1rem; border-radius:10px; margin-top:1rem; }
         .alert.error { background:#fee2e2; color:#991b1b; }
-        .alert.success { background:#dcfce7; color:#166534; }
+        .alert.success { background:#dcfce7; color:#166534; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+        .alert-link { color:#166534; text-decoration:none; font-weight:700; }
         .muted { color:#6b7280; }
         @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
     </style>
@@ -41,7 +43,10 @@
             <div class="alert error"><%= errors[0] %></div>
         <% } %>
         <% if (messages && messages.length) { %>
-            <div class="alert success"><%= messages[0] %></div>
+            <div class="alert success">
+                <%= messages[0] %>
+                <a class="alert-link" href="/checkout/orders">View my orders</a>
+            </div>
         <% } %>
 
         <div class="grid">
@@ -50,11 +55,16 @@
                 <form action="/refunds/request" method="POST">
                     <div style="margin-top:1rem;">
                         <label for="orderId">Order ID</label>
-                        <input id="orderId" name="orderId" type="number" min="1" placeholder="e.g. 123" required>
+                        <input id="orderId" name="orderId" type="number" min="1" placeholder="e.g. 123" required value="<%= typeof selectedOrderId !== 'undefined' && selectedOrderId ? selectedOrderId : '' %>">
+                        <div class="muted" id="refundOrderHelp" style="margin-top:.35rem;">Pick from recent orders or type an order ID.</div>
                     </div>
                     <div style="margin-top:1rem;">
                         <label for="amount">Amount</label>
-                        <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                        <div style="display:flex; gap:.5rem; align-items:center;">
+                            <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required value="<%= typeof selectedAmount !== 'undefined' && selectedAmount ? selectedAmount : '' %>">
+                            <button class="btn" type="button" id="useFullAmountBtn">Use full</button>
+                        </div>
+                        <div class="muted" id="refundAmountHelp" style="margin-top:.35rem;">Enter the amount you want refunded.</div>
                     </div>
                     <div style="margin-top:1rem;">
                         <label for="reason">Reason</label>
@@ -79,7 +89,7 @@
                         </thead>
                         <tbody>
                             <% orders.forEach(order => { %>
-                                <tr>
+                                <tr class="order-row" data-order-id="<%= order.order_id %>" data-order-total="<%= parseFloat(order.total_price).toFixed(2) %>" data-order-status="<%= order.status %>">
                                     <td>#<%= order.order_id %></td>
                                     <td>$<%= parseFloat(order.total_price).toFixed(2) %></td>
                                     <td><%= order.status %></td>
@@ -123,5 +133,67 @@
             <% } %>
         </div>
     </div>
+    <script>
+        (function () {
+            const orderIdInput = document.getElementById('orderId');
+            const amountInput = document.getElementById('amount');
+            const useFullBtn = document.getElementById('useFullAmountBtn');
+            const amountHelp = document.getElementById('refundAmountHelp');
+            const orderHelp = document.getElementById('refundOrderHelp');
+            const rows = Array.from(document.querySelectorAll('.order-row'));
+            const orderMap = rows.reduce((acc, row) => {
+                const id = row.dataset.orderId;
+                acc[id] = {
+                    total: parseFloat(row.dataset.orderTotal || '0'),
+                    status: row.dataset.orderStatus || ''
+                };
+                return acc;
+            }, {});
+
+            const updateFromOrderId = () => {
+                const id = String(orderIdInput.value || '').trim();
+                if (!id || !orderMap[id]) {
+                    if (orderHelp) orderHelp.textContent = 'Pick from recent orders or type an order ID.';
+                    if (amountHelp) amountHelp.textContent = 'Enter the amount you want refunded.';
+                    return;
+                }
+
+                const info = orderMap[id];
+                if (orderHelp) {
+                    orderHelp.textContent = `Selected order #${id} (${info.status || 'UNKNOWN'}).`;
+                }
+                if (amountHelp) {
+                    amountHelp.textContent = `Max based on order total: $${info.total.toFixed(2)}.`;
+                }
+                if (!amountInput.value) {
+                    amountInput.value = info.total.toFixed(2);
+                }
+            };
+
+            rows.forEach((row) => {
+                row.addEventListener('click', () => {
+                    orderIdInput.value = row.dataset.orderId || '';
+                    updateFromOrderId();
+                });
+                row.style.cursor = 'pointer';
+                row.title = 'Click to use this order';
+            });
+
+            if (useFullBtn) {
+                useFullBtn.addEventListener('click', () => {
+                    const id = String(orderIdInput.value || '').trim();
+                    if (id && orderMap[id]) {
+                        amountInput.value = orderMap[id].total.toFixed(2);
+                        if (amountHelp) amountHelp.textContent = `Using full amount: $${orderMap[id].total.toFixed(2)}.`;
+                    }
+                });
+            }
+
+            if (orderIdInput) {
+                orderIdInput.addEventListener('input', updateFromOrderId);
+            }
+            updateFromOrderId();
+        })();
+    </script>
 </body>
 </html>

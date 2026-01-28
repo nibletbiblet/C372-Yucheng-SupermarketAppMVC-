@@ -8,6 +8,8 @@ const queryAsync = (connection, sql, params) =>
 exports.refundsPage = async (req, res) => {
     const connection = req.app.locals.connection;
     const userId = req.session.user.id;
+    const selectedOrderId = req.query.orderId ? parseInt(req.query.orderId, 10) : null;
+    const selectedAmount = req.query.amount ? parseFloat(req.query.amount) : null;
 
     try {
         const orders = await queryAsync(
@@ -25,6 +27,8 @@ exports.refundsPage = async (req, res) => {
             user: req.session.user,
             orders,
             requests,
+            selectedOrderId,
+            selectedAmount,
             messages: req.flash('success'),
             errors: req.flash('error')
         });
@@ -34,6 +38,8 @@ exports.refundsPage = async (req, res) => {
             user: req.session.user,
             orders: [],
             requests: [],
+            selectedOrderId,
+            selectedAmount,
             messages: req.flash('success'),
             errors: req.flash('error')
         });
