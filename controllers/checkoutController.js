@@ -24,7 +24,8 @@ const rollbackAsync = (connection) =>
 
 const createOrderFromCart = async (req) => {
     const connection = req.app.locals.connection;
-    const cart = req.session.cart || [];
+    const paymentCart = Array.isArray(req.session.paymentCart) ? req.session.paymentCart : [];
+    const cart = paymentCart.length > 0 ? paymentCart : (req.session.cart || []);
 
     if (cart.length === 0) {
         throw new Error('Your cart is empty');
@@ -32,6 +33,7 @@ const createOrderFromCart = async (req) => {
 
     const userId = req.session.user.id;
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    req.session.lastOrderTotal = total;
 
     await beginTransactionAsync(connection);
 
@@ -39,6 +41,7 @@ const createOrderFromCart = async (req) => {
         const orderSql = 'INSERT INTO orders (user_id, total_price) VALUES (?, ?)';
         const orderResult = await queryAsync(connection, orderSql, [userId, total]);
         const orderId = orderResult.insertId;
+        req.session.lastOrderId = orderId;
 
         for (const item of cart) {
             const rows = await queryAsync(connection, 'SELECT quantity FROM products WHERE id = ?', [item.id]);
@@ -67,6 +70,8 @@ const createOrderFromCart = async (req) => {
 
         await commitAsync(connection);
         req.session.cart = [];
+        req.session.paymentCart = [];
+        delete req.session.paymentTotal;
         return { orderId, total };
     } catch (err) {
         await rollbackAsync(connection);
@@ -98,6 +103,7 @@ exports.paymentPage = (req, res) => {
     }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    req.session.paymentCart = cart.map((item) => ({ ...item }));
     req.session.paymentTotal = total;
 
     res.render('payment', {
