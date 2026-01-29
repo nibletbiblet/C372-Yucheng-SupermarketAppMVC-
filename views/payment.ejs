@@ -6,6 +6,7 @@
     <title>Payment - FreshMarket</title>
     <link rel="stylesheet" href="/css/themes.css?v=1">
     <link rel="stylesheet" href="/css/payment.css?v=1">
+    <link rel="stylesheet" href="/css/payment_tidy.css?v=1">
     <script src="https://www.paypal.com/sdk/js?client-id=<%= (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_ID !== 'your_paypal_client_id') ? process.env.PAYPAL_CLIENT_ID : 'sb' %>&currency=SGD"></script>
 </head>
 <body class="<%= user && user.role === 'admin' ? 'admin-theme' : 'user-theme' %>">

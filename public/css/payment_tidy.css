@@ -1,0 +1,14 @@
+/* Payment page layout polish (non-breaking) */
+.payment-page { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; }
+.payment-header { gap: 1rem; flex-wrap: wrap; }
+.payment-header .brand { font-weight: 800; letter-spacing: .3px; }
+.payment-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.panel { border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+.section-title { font-size: 1.1rem; font-weight: 800; letter-spacing: .2px; }
+.method-card { border: 1px solid #e5e7eb; }
+.method-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 20px rgba(79,70,229,.12); }
+.wallet-card input { background: #f8fafc; }
+.status-card { border: 1px solid #e5e7eb; }
+@media (max-width: 1000px) {
+  .payment-grid { grid-template-columns: 1fr; }
+}
