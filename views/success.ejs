@@ -168,5 +168,20 @@
             <p>Questions? Contact us at <strong>support@freshmarket.com</strong></p>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const total = parseFloat('<%= parseFloat(totalAmount).toFixed(2) %>');
+            const coins = Math.floor(total);
+            if (coins <= 0) return;
+            const amount = (coins * 0.01).toFixed(2);
+            const payload = { coins, amount, ts: Date.now() };
+            try {
+                localStorage.setItem('freshcoinReward', JSON.stringify(payload));
+            } catch (err) {
+                // Ignore storage failures
+            }
+        })();
+    </script>
 </body>
 </html>

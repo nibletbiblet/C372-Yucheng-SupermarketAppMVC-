@@ -160,11 +160,9 @@ async function credit(connection, userId, amount, meta) {
 }
 
 async function applyCashbackIfEligible(connection, orderId) {
-    const cashbackRate = 0.02;
-
     const existing = await queryAsync(
         connection,
-        `SELECT id FROM wallet_ledger WHERE order_id = ? AND type = 'CASHBACK'`,
+        `SELECT id FROM wallet_ledger WHERE order_id = ? AND type = 'FRESHCOIN'`,
         [orderId]
     );
     if (existing.length > 0) return;
@@ -178,14 +176,16 @@ async function applyCashbackIfEligible(connection, orderId) {
 
     const userId = orderRows[0].user_id;
     const total = parseFloat(orderRows[0].total_price || 0);
-    const cashback = parseFloat((total * cashbackRate).toFixed(2));
-    if (cashback <= 0) return;
+    const coins = Math.floor(total);
+    const creditAmount = parseFloat((coins * 0.01).toFixed(2));
+    if (creditAmount <= 0) return;
 
-    await credit(connection, userId, cashback, {
-        type: 'CASHBACK',
+    await credit(connection, userId, creditAmount, {
+        type: 'FRESHCOIN',
         orderId,
         refType: 'ORDER',
-        refId: orderId
+        refId: orderId,
+        note: `Freshcoins reward: ${coins} coins`
     });
 }
 

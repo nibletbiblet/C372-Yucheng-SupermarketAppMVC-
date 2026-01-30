@@ -41,6 +41,7 @@
             color:#0f172a;
             font-weight:700;
             transition:all .2s;
+            position: relative;
         }
         .wallet-pill:hover { background:#eef2ff; border-color:#c7d2fe; color:#4f46e5; }
         .wallet-badge {
@@ -50,6 +51,26 @@
             border-radius:999px;
             font-weight:800;
             font-size:.85rem;
+        }
+        .wallet-reward {
+            position: absolute;
+            right: -14px;
+            top: -16px;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: .95rem;
+            font-weight: 900;
+            letter-spacing: .3px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45);
+            animation: rewardPop 1.5s ease forwards;
+        }
+        @keyframes rewardPop {
+            0% { transform: translateY(14px) scale(0.6) rotate(-6deg); opacity: 0; }
+            35% { transform: translateY(-4px) scale(1.15) rotate(3deg); opacity: 1; }
+            70% { transform: translateY(-12px) scale(1.02) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-18px) scale(0.95) rotate(0deg); opacity: 0; }
         }
         .cart-badge { position:relative; }
         .cart-count { position:absolute; top:-8px; right:-8px; background:#ef4444; color:#fff; border-radius:50%; width:20px; height:20px; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700; }
@@ -419,12 +440,37 @@
                 const data = await res.json();
                 if (data && data.balance !== undefined) {
                     amountEl.textContent = `$${Number(data.balance).toFixed(2)}`;
+                    showFreshcoinReward();
                 }
             } catch (err) {
                 // Silent fail to avoid breaking UX if API is unavailable
             }
         }
         updateNavWalletBalance();
+
+        function showFreshcoinReward() {
+            const pill = document.getElementById('navWalletPill');
+            if (!pill) return;
+            let payload = null;
+            try {
+                payload = JSON.parse(localStorage.getItem('freshcoinReward') || 'null');
+            } catch (err) {
+                payload = null;
+            }
+            if (!payload || !payload.amount) return;
+            const badge = document.createElement('div');
+            badge.className = 'wallet-reward';
+            badge.textContent = `+${payload.amount}`;
+            pill.appendChild(badge);
+            setTimeout(() => {
+                badge.remove();
+            }, 1200);
+            try {
+                localStorage.removeItem('freshcoinReward');
+            } catch (err) {
+                // ignore
+            }
+        }
 
         // Sort functionality
         const sortSelect = document.getElementById('sortSelect');
