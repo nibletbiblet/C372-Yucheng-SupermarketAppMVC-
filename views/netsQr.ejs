@@ -24,20 +24,73 @@
     <script>
         let s2sNetsTxnStatus;
         const txnRetrievalRef = "<%= txnRetrievalRef %>";
+        const orderId = "<%= (typeof orderId !== 'undefined' && orderId) ? orderId : '' %>";
         const url = `/sse/payment-status/${txnRetrievalRef}`;
 
         s2sNetsTxnStatus = new EventSourcePolyfill(url, { heartbeatTimeout: 150000 });
 
-        s2sNetsTxnStatus.addEventListener("message", (event) => {
+        s2sNetsTxnStatus.addEventListener("message", async (event) => {
             const data = JSON.parse(event.data);
-            if (data.success) {
+            const netsData = data?.result?.data || {};
+            const isSuccess = data.success || (netsData.response_code === "00" && netsData.txn_status === 1);
+            const isFail = data.fail || (netsData.response_code !== "00" && netsData.txn_status === 2);
+
+            if (isSuccess) {
                 s2sNetsTxnStatus.close();
-                window.location.href = `/nets-qr/success?txn_retrieval_ref=${txnRetrievalRef}`;
-            } else if (data.fail) {
+                try {
+                    await fetch('/api/payments/callback/nets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ txnRetrievalRef })
+                    });
+                } catch (err) {
+                    // Continue with redirect even if callback fails
+                }
+                if (orderId) {
+                    window.location.href = `/checkout/success/${orderId}`;
+                } else {
+                    window.location.href = `/nets-qr/success?txn_retrieval_ref=${txnRetrievalRef}`;
+                }
+                return;
+            }
+
+            if (isFail) {
                 s2sNetsTxnStatus.close();
                 window.location.href = `/nets-qr/fail?txn_retrieval_ref=${txnRetrievalRef}`;
             }
         });
+
+        async function pollNetsStatus() {
+            try {
+                const res = await fetch(`/api/nets/query/${txnRetrievalRef}`);
+                const data = await res.json();
+                const netsData = data?.result?.data || {};
+                const isSuccess = netsData.response_code === "00" && netsData.txn_status === 1;
+                const isFail = netsData.response_code !== "00" && netsData.txn_status === 2;
+                if (isSuccess) {
+                    if (s2sNetsTxnStatus) s2sNetsTxnStatus.close();
+                    await fetch('/api/payments/callback/nets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ txnRetrievalRef })
+                    });
+                    if (orderId) {
+                        window.location.href = `/checkout/success/${orderId}`;
+                    } else {
+                        window.location.href = `/nets-qr/success?txn_retrieval_ref=${txnRetrievalRef}`;
+                    }
+                    return;
+                }
+                if (isFail) {
+                    if (s2sNetsTxnStatus) s2sNetsTxnStatus.close();
+                    window.location.href = `/nets-qr/fail?txn_retrieval_ref=${txnRetrievalRef}`;
+                }
+            } catch (err) {
+                // Ignore polling errors
+            }
+        }
+
+        const pollInterval = setInterval(pollNetsStatus, 4000);
 
         const timerElement = document.getElementById("timer");
         const countdownDuration = 300;

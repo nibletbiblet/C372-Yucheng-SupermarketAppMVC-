@@ -181,8 +181,104 @@ app.post('/api/paypal/capture-order', checkAuthenticated, async (req, res) => {
 
 // NETS API routes
 app.post('/api/nets/generate-qr', checkAuthenticated, netsQr.generateQrCode);
-app.get('/nets-qr/success', checkAuthenticated, (req, res) => {
-    res.render('netsTxnSuccessStatus', { message: 'Transaction Successful!' });
+app.get('/api/nets/query/:txnRetrievalRef', checkAuthenticated, async (req, res) => {
+    const txnRetrievalRef = req.params.txnRetrievalRef;
+    try {
+        const response = await axios.post(
+            'https://sandbox.nets.openapipaas.com/api/v1/common/payments/nets-qr/query',
+            { txn_retrieval_ref: txnRetrievalRef, frontend_timeout_status: 0 },
+            {
+                headers: {
+                    'api-key': process.env.API_KEY,
+                    'project-id': process.env.PROJECT_ID,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return res.json(response.data);
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+app.get('/nets-qr/success', checkAuthenticated, async (req, res) => {
+    const connection = req.app.locals.connection;
+    const queryAsync = (sql, params) =>
+        new Promise((resolve, reject) => {
+            connection.query(sql, params, (err, results) => (err ? reject(err) : resolve(results)));
+        });
+
+    const txnRetrievalRef = req.query.txn_retrieval_ref;
+    let orderId =
+        (txnRetrievalRef && req.session.netsOrderMap && req.session.netsOrderMap[txnRetrievalRef]) ||
+        req.query.order_id ||
+        req.session.lastOrderId ||
+        null;
+
+    if (!orderId && txnRetrievalRef) {
+        try {
+            const rows = await queryAsync(
+                "SELECT order_id FROM payments WHERE provider = 'NETS' AND provider_ref = ? ORDER BY id DESC LIMIT 1",
+                [txnRetrievalRef]
+            );
+            if (rows.length > 0) {
+                orderId = rows[0].order_id;
+            }
+        } catch (err) {
+            orderId = null;
+        }
+    }
+    if (!orderId && req.session.user && req.session.user.id) {
+        try {
+            const rows = await queryAsync(
+                'SELECT order_id FROM orders WHERE user_id = ? ORDER BY order_id DESC LIMIT 1',
+                [req.session.user.id]
+            );
+            if (rows.length > 0) {
+                orderId = rows[0].order_id;
+            }
+        } catch (err) {
+            orderId = null;
+        }
+    }
+
+    let paymentStatus = null;
+    if (txnRetrievalRef) {
+        try {
+            const rows = await queryAsync(
+                "SELECT order_id, status FROM payments WHERE provider = 'NETS' AND provider_ref = ? ORDER BY id DESC LIMIT 1",
+                [txnRetrievalRef]
+            );
+            if (rows.length > 0) {
+                orderId = orderId || rows[0].order_id;
+                paymentStatus = rows[0].status;
+            }
+        } catch (err) {
+            paymentStatus = null;
+        }
+    }
+
+    if (orderId && paymentStatus === 'SUCCEEDED') {
+        console.log('[AUDIT]', JSON.stringify({
+            event: 'nets.redirect.success',
+            time: new Date().toISOString(),
+            orderId,
+            providerRef: txnRetrievalRef || null
+        }));
+        return res.redirect('/checkout/success/' + orderId);
+    }
+
+    console.log('[AUDIT]', JSON.stringify({
+        event: 'nets.redirect.fallback',
+        time: new Date().toISOString(),
+        orderId: orderId || null,
+        providerRef: txnRetrievalRef || null,
+        paymentStatus: paymentStatus || 'UNKNOWN'
+    }));
+
+    res.render('netsTxnSuccessStatus', {
+        message: 'Transaction Successful!',
+        orderId: orderId || null
+    });
 });
 app.get('/nets-qr/fail', checkAuthenticated, (req, res) => {
     res.render('netsTxnFailStatus', { message: 'Transaction Failed. Please try again.' });

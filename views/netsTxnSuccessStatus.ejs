@@ -5,10 +5,13 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; }
     </style>
+    <% const resolvedOrderId = (typeof orderId !== 'undefined' && orderId) ? orderId : null; %>
+    <meta http-equiv="refresh" content="2;url=<%= resolvedOrderId ? ('/checkout/success/' + resolvedOrderId) : '/checkout/payment' %>">
 </head>
 <body>
     <h1><%= message %></h1>
     <p>Thank you for your payment!</p>
-    <a href="/checkout/payment">Back to Payment</a>
+    <p>Redirecting to your order...</p>
+    <a href="<%= resolvedOrderId ? ('/checkout/success/' + resolvedOrderId) : '/checkout/payment' %>">Continue</a>
 </body>
 </html>

@@ -1,6 +1,7 @@
 ﻿const express = require('express');
 const router = express.Router();
 const paymentController = require('../controllers/paymentController');
+const netsEnsurePayment = require('../middleware/netsEnsurePayment');
 const savedPaymentController = require('../controllers/savedPaymentController');
 const idempotencyMiddleware = require('../middleware/idempotency');
 
@@ -15,7 +16,7 @@ router.post('/wallet/topup', checkAuthenticated, paymentController.walletTopup);
 router.post('/bank/submit', checkAuthenticated, paymentController.bankSubmit);
 router.post('/nets/qr', checkAuthenticated, paymentController.netsQr);
 router.post('/callback/paypal', checkAuthenticated, paymentController.paypalCallback);
-router.post('/callback/nets', checkAuthenticated, paymentController.netsCallback);
+router.post('/callback/nets', checkAuthenticated, netsEnsurePayment, paymentController.netsCallback);
 router.get('/callback/airwallex', paymentController.airwallexCallback);
 router.get('/airwallex/status/:paymentIntentId', checkAuthenticated, paymentController.airwallexStatus);
 router.post('/webhook/airwallex', paymentController.airwallexWebhook);
