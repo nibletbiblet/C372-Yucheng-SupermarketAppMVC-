@@ -1,4 +1,4 @@
-const refundService = require('../services/refundService');
+﻿const refundService = require('../services/refundService');
 const paymentOrchestrator = require('../services/paymentOrchestrator');
 const RefundRequest = require('../models/RefundRequest');
 const walletService = require('../services/walletService');
@@ -7,6 +7,32 @@ const queryAsync = (connection, sql, params) =>
     new Promise((resolve, reject) => {
         connection.query(sql, params, (err, results) => (err ? reject(err) : resolve(results)));
     });
+
+exports.paymentsPage = async (req, res) => {
+    const connection = req.app.locals.connection;
+    const rows = await queryAsync(
+        connection,
+        `SELECT p.id, p.order_id, p.user_id, p.provider, p.amount, p.currency, p.status, p.created_at,
+                u.username,
+                COALESCE(SUM(r.amount), 0) AS refunded_amount
+         FROM payments p
+         JOIN users u ON u.id = p.user_id
+         LEFT JOIN refunds r ON r.payment_id = p.id AND r.status = 'APPROVED'
+         GROUP BY p.id
+         ORDER BY p.created_at DESC`
+    );
+
+    const payments = rows.map((row) => {
+        const refunded = parseFloat(row.refunded_amount || 0);
+        const status = refunded >= row.amount ? 'REFUNDED' : (refunded > 0 ? 'PARTIAL_REFUNDED' : row.status);
+        return { ...row, refunded_amount: refunded, refund_status: status };
+    });
+
+    res.render('adminPayments', {
+        user: req.session.user,
+        payments
+    });
+};
 
 exports.listPayments = async (req, res) => {
     const connection = req.app.locals.connection;
@@ -28,6 +54,45 @@ exports.createRefund = async (req, res) => {
         res.json({ success: true, refundId });
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }
+};
+
+exports.refundPaymentFromDashboard = async (req, res) => {
+    try {
+        const connection = req.app.locals.connection;
+        const paymentId = parseInt(req.params.txnId, 10);
+        if (!paymentId) return res.status(400).json({ error: 'Invalid payment id' });
+
+        const payments = await queryAsync(connection, 'SELECT * FROM payments WHERE id = ?', [paymentId]);
+        if (payments.length === 0) return res.status(404).json({ error: 'Payment not found' });
+        const payment = payments[0];
+
+        const refundedRows = await queryAsync(
+            connection,
+            'SELECT COALESCE(SUM(amount),0) AS refunded FROM refunds WHERE payment_id = ? AND status = "APPROVED"',
+            [paymentId]
+        );
+        const refundedSoFar = parseFloat(refundedRows[0].refunded || 0);
+        if (refundedSoFar >= payment.amount) {
+            return res.status(400).json({ error: 'Payment already refunded' });
+        }
+
+        let amount = parseFloat(req.body.amount || 0);
+        if (!amount || amount <= 0) {
+            amount = parseFloat((payment.amount - refundedSoFar).toFixed(2));
+        }
+
+        const refundId = await refundService.createRefund(connection, {
+            paymentId,
+            amount,
+            reason: req.body.reason || 'Admin refund',
+            method: req.body.method || 'WALLET',
+            adminId: req.session.user.id
+        });
+
+        return res.json({ success: true, refundId });
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
     }
 };
 
@@ -217,7 +282,7 @@ exports.decideRefundRequest = async (req, res) => {
         try {
             await queryAsync(
                 connection,
-                'UPDATE payments SET status = ? WHERE order_id = ? AND status = \"SUCCEEDED\"',
+                'UPDATE payments SET status = ? WHERE order_id = ? AND status = "SUCCEEDED"',
                 [paymentStatus, refund.order_id]
             );
         } catch (err) {

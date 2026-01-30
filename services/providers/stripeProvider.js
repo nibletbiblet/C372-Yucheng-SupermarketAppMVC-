@@ -1,4 +1,4 @@
-const querystring = require('querystring');
+﻿const querystring = require('querystring');
 
 async function createPayment({ amount, orderId, methodTypes }) {
     const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -45,4 +45,40 @@ async function createPayment({ amount, orderId, methodTypes }) {
     };
 }
 
-module.exports = { createPayment };
+async function chargeSavedPaymentMethod({ amount, currency, orderId, paymentMethodId }) {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+        throw new Error('Stripe is not configured');
+    }
+
+    const bodyFields = {
+        amount: Math.round(amount * 100),
+        currency: (currency || 'SGD').toLowerCase(),
+        payment_method: paymentMethodId,
+        confirm: 'true',
+        off_session: 'true',
+        description: `FreshMarket order ${orderId}`
+    };
+
+    const body = querystring.stringify(bodyFields);
+    const response = await fetch('https://api.stripe.com/v1/payment_intents', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error && data.error.message ? data.error.message : 'Stripe charge failed');
+    }
+
+    return {
+        providerRef: data.id,
+        status: data.status
+    };
+}
+
+module.exports = { createPayment, chargeSavedPaymentMethod };

@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 
@@ -12,7 +12,9 @@ const checkAdmin = (req, res, next) => {
     return res.status(403).json({ error: 'Forbidden' });
 };
 
-router.get('/payments', checkAuthenticated, checkAdmin, adminController.listPayments);
+router.get('/payments', checkAuthenticated, checkAdmin, adminController.paymentsPage);
+router.get('/payments/data', checkAuthenticated, checkAdmin, adminController.listPayments);
+router.post('/refund/:txnId', checkAuthenticated, checkAdmin, adminController.refundPaymentFromDashboard);
 router.post('/refunds', checkAuthenticated, checkAdmin, adminController.createRefund);
 router.get('/disputes', checkAuthenticated, checkAdmin, adminController.listDisputes);
 router.post('/disputes/:id/resolve', checkAuthenticated, checkAdmin, adminController.resolveDispute);

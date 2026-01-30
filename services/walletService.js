@@ -1,10 +1,37 @@
+﻿const ledgerService = require('./ledgerService');
+
 const queryAsync = (connection, sql, params) =>
     new Promise((resolve, reject) => {
         connection.query(sql, params, (err, results) => (err ? reject(err) : resolve(results)));
     });
 
+const beginTransactionAsync = (connection) =>
+    new Promise((resolve, reject) => {
+        connection.beginTransaction((err) => (err ? reject(err) : resolve()));
+    });
+
+const commitAsync = (connection) =>
+    new Promise((resolve, reject) => {
+        connection.commit((err) => (err ? reject(err) : resolve()));
+    });
+
+const rollbackAsync = (connection) =>
+    new Promise((resolve) => {
+        connection.rollback(() => resolve());
+    });
+
 async function getBalance(connection, userId) {
     const rows = await queryAsync(connection, 'SELECT wallet_balance FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) throw new Error('User not found');
+    return parseFloat(rows[0].wallet_balance || 0);
+}
+
+async function getBalanceForUpdate(connection, userId) {
+    const rows = await queryAsync(
+        connection,
+        'SELECT wallet_balance FROM users WHERE id = ? FOR UPDATE',
+        [userId]
+    );
     if (rows.length === 0) throw new Error('User not found');
     return parseFloat(rows[0].wallet_balance || 0);
 }
@@ -30,48 +57,106 @@ async function recordLedger(connection, { userId, type, amount, balanceAfter, or
 }
 
 async function debit(connection, userId, amount, meta) {
-    const balance = await getBalance(connection, userId);
-    if (balance < amount) throw new Error('Insufficient wallet balance');
+    const useExistingTransaction = meta && meta.useExistingTransaction === true;
+    if (!useExistingTransaction) {
+        await beginTransactionAsync(connection);
+    }
 
-    await queryAsync(
-        connection,
-        'UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?',
-        [amount, userId]
-    );
+    try {
+        const balance = await getBalanceForUpdate(connection, userId);
+        if (balance < amount) throw new Error('Insufficient wallet balance');
 
-    const newBalance = balance - amount;
-    await recordLedger(connection, {
-        userId,
-        type: 'PAYMENT',
-        amount,
-        balanceAfter: newBalance,
-        orderId: meta && meta.orderId,
-        refType: 'ORDER',
-        refId: meta && meta.orderId,
-        metadata: meta || {}
-    });
-    return newBalance;
+        await ledgerService.ensureAccountBalances(connection, userId, balance);
+
+        await queryAsync(
+            connection,
+            'UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?',
+            [amount, userId]
+        );
+
+        const newBalance = balance - amount;
+        await recordLedger(connection, {
+            userId,
+            type: 'PAYMENT',
+            amount,
+            balanceAfter: newBalance,
+            orderId: meta && meta.orderId,
+            paymentId: meta && meta.paymentId,
+            refType: meta && meta.refType ? meta.refType : 'ORDER',
+            refId: meta && (meta.refId || meta.orderId),
+            metadata: meta || {}
+        });
+
+        await ledgerService.recordWalletTransferTx(connection, {
+            userId,
+            amount,
+            direction: 'DEBIT',
+            referenceType: meta && meta.refType ? meta.refType : 'ORDER',
+            referenceId: meta && (meta.refId || meta.orderId),
+            notes: meta && meta.note
+        });
+
+        if (!useExistingTransaction) {
+            await commitAsync(connection);
+        }
+        return newBalance;
+    } catch (err) {
+        if (!useExistingTransaction) {
+            await rollbackAsync(connection);
+        }
+        throw err;
+    }
 }
 
 async function credit(connection, userId, amount, meta) {
-    const balance = await getBalance(connection, userId);
-    await queryAsync(
-        connection,
-        'UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?',
-        [amount, userId]
-    );
-    const newBalance = balance + amount;
-    await recordLedger(connection, {
-        userId,
-        type: meta && meta.type ? meta.type : 'REFUND',
-        amount,
-        balanceAfter: newBalance,
-        orderId: meta && meta.orderId,
-        refType: meta && meta.refType,
-        refId: meta && meta.refId,
-        metadata: meta || {}
-    });
-    return newBalance;
+    const useExistingTransaction = meta && meta.useExistingTransaction === true;
+    if (!useExistingTransaction) {
+        await beginTransactionAsync(connection);
+    }
+
+    try {
+        const balance = await getBalanceForUpdate(connection, userId);
+
+        await ledgerService.ensureAccountBalances(connection, userId, balance);
+
+        await queryAsync(
+            connection,
+            'UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?',
+            [amount, userId]
+        );
+        const newBalance = balance + amount;
+
+        await recordLedger(connection, {
+            userId,
+            type: meta && meta.type ? meta.type : 'REFUND',
+            amount,
+            balanceAfter: newBalance,
+            orderId: meta && meta.orderId,
+            paymentId: meta && meta.paymentId,
+            refType: meta && meta.refType,
+            refId: meta && meta.refId,
+            metadata: meta || {}
+        });
+
+        await ledgerService.recordWalletTransferTx(connection, {
+            userId,
+            amount,
+            direction: 'CREDIT',
+            referenceType: meta && meta.refType,
+            referenceId: meta && meta.refId,
+            notes: meta && meta.note
+        });
+
+        if (!useExistingTransaction) {
+            await commitAsync(connection);
+        }
+        return newBalance;
+    } catch (err) {
+        if (!useExistingTransaction) {
+            await rollbackAsync(connection);
+        }
+        throw err;
+    }
 }
 
 async function applyCashbackIfEligible(connection, orderId) {

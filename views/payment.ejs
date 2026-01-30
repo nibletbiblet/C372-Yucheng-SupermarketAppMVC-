@@ -4,10 +4,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - FreshMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/themes.css?v=1">
     <link rel="stylesheet" href="/css/payment.css?v=1">
     <link rel="stylesheet" href="/css/payment_tidy.css?v=1">
     <script src="https://www.paypal.com/sdk/js?client-id=<%= (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_ID !== 'your_paypal_client_id') ? process.env.PAYPAL_CLIENT_ID : 'sb' %>&currency=SGD"></script>
+    <style>
+        :root {
+            --ink: #121417;
+            --muted: #5f6b7a;
+            --cream: #f9f5ef;
+            --sun: #f4c04f;
+            --mint: #b6e2d3;
+            --leaf: #215246;
+            --card: #ffffff;
+            --shadow: 0 18px 50px rgba(18, 20, 23, 0.12);
+        }
+
+        body.user-theme {
+            font-family: "Space Grotesk", system-ui, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 8%, rgba(244, 192, 79, 0.25), transparent 45%),
+                radial-gradient(circle at 92% 12%, rgba(182, 226, 211, 0.35), transparent 40%),
+                linear-gradient(180deg, #fff 0%, var(--cream) 50%, #fff 100%);
+        }
+
+        .payment-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 3.5rem;
+        }
+
+        .payment-header .brand {
+            font-family: "Fraunces", serif;
+            font-size: 1.9rem;
+            color: var(--leaf);
+        }
+
+        .payment-header .steps .step {
+            border-radius: 999px;
+            padding: 0.35rem 0.9rem;
+            background: rgba(33, 82, 70, 0.08);
+            color: var(--leaf);
+        }
+
+        .payment-grid {
+            gap: 1.75rem;
+        }
+
+        .panel {
+            background: var(--card);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            align-content: start;
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: var(--leaf);
+            letter-spacing: 0.02em;
+        }
+
+        .card {
+            border-radius: 18px;
+            border: 1px solid rgba(18, 20, 23, 0.06);
+            box-shadow: none;
+            background: #fff;
+        }
+
+        .wallet-card {
+            background: linear-gradient(135deg, rgba(244, 192, 79, 0.12), rgba(182, 226, 211, 0.18));
+        }
+
+        .method-card {
+            border-radius: 16px;
+            border: 1px solid rgba(18, 20, 23, 0.08);
+            background: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .method-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(18, 20, 23, 0.1);
+        }
+
+        .method-icon {
+            background: var(--leaf);
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .btn.primary-btn,
+        .btn.primary {
+            background: var(--leaf);
+            border-color: var(--leaf);
+            color: #fff;
+        }
+
+        .btn.ghost-btn {
+            border-color: rgba(18, 20, 23, 0.15);
+            color: var(--leaf);
+        }
+
+        .status-card {
+            background: #fffdf8;
+            border: 1px dashed rgba(33, 82, 70, 0.35);
+        }
+
+        .fine-print,
+        .muted {
+            color: var(--muted);
+        }
+
+        .summary-card {
+            padding: 0.8rem;
+        }
+
+        .summary-list {
+            gap: 0.35rem;
+        }
+
+        .summary-row {
+            padding: 0.2rem 0;
+        }
+
+        .summary-total {
+            padding-top: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .wallet-card .input-row,
+        .card .input-row {
+            margin-bottom: 0.6rem;
+        }
+
+        .wallet-card .btn,
+        .card .btn {
+            padding: 0.45rem 0.8rem;
+        }
+
+        @media (max-width: 980px) {
+            .payment-page {
+                padding: 1.5rem 1rem 3rem;
+            }
+        }
+    </style>
 </head>
 <body class="<%= user && user.role === 'admin' ? 'admin-theme' : 'user-theme' %>">
     <div class="payment-page">
@@ -164,6 +310,12 @@
         }
         fetchWalletBalance();
 
+
+        function generateIdempotencyKey() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return 'idem-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+        }
+
         function setStatus(message) {
             const statusEl = document.getElementById('statusArea');
             if (statusEl) statusEl.textContent = `Status: ${message}`;
@@ -192,7 +344,7 @@
             }
             const res = await fetch('/api/payments/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Idempotency-Key': generateIdempotencyKey() },
                 body: JSON.stringify({ provider, useWalletAmount: walletUse })
             });
             const data = await res.json();

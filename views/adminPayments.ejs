@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Payments</title>
+    <link rel="stylesheet" href="/css/themes.css?v=1">
+    <style>
+        .page { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { padding: 0.75rem; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f5f6f8; font-weight: 600; }
+        .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.75rem; }
+        .tag.ok { background: #e6f6ec; color: #0a7a3d; }
+        .tag.warn { background: #fff4e5; color: #a35a00; }
+        .tag.bad { background: #fde8e8; color: #b42318; }
+        .btn { padding: 0.4rem 0.7rem; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+        .btn.primary { background: #0a7a3d; color: #fff; border-color: #0a7a3d; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; }
+        .modal-card { background: #fff; padding: 1rem; border-radius: 8px; width: 360px; }
+        .row { display: flex; gap: 0.5rem; }
+        .row input, .row select { flex: 1; padding: 0.4rem; }
+    </style>
+</head>
+<body class="admin-theme">
+    <div class="page">
+        <h2>Payments</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Refund</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (payments && payments.length > 0) { %>
+                    <% payments.forEach(p => { %>
+                        <tr>
+                            <td><%= p.id %></td>
+                            <td><%= new Date(p.created_at).toLocaleString() %></td>
+                            <td><%= p.username %></td>
+                            <td>$<%= Number(p.amount).toFixed(2) %></td>
+                            <td>
+                                <span class="tag <%= p.status === 'SUCCEEDED' ? 'ok' : 'warn' %>"><%= p.status %></span>
+                            </td>
+                            <td>
+                                <% if (p.refund_status === 'REFUNDED') { %>
+                                    <span class="tag bad">REFUNDED</span>
+                                <% } else if (p.refund_status === 'PARTIAL_REFUNDED') { %>
+                                    <span class="tag warn">PARTIAL</span>
+                                <% } else { %>
+                                    <span class="tag ok">NONE</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (p.refund_status !== 'REFUNDED') { %>
+                                    <button class="btn primary" data-refund-btn data-id="<%= p.id %>" data-amount="<%= p.amount %>" data-refunded="<%= p.refunded_amount %>">Refund</button>
+                                <% } else { %>
+                                    <button class="btn" disabled>Refunded</button>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7">No payments found.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="refundModal">
+        <div class="modal-card">
+            <h3>Refund Payment</h3>
+            <form id="refundForm">
+                <input type="hidden" id="refundPaymentId" />
+                <label>Amount</label>
+                <input type="number" id="refundAmount" step="0.01" min="0" />
+                <label>Method</label>
+                <select id="refundMethod">
+                    <option value="WALLET">Wallet</option>
+                    <option value="ORIGINAL">Original</option>
+                </select>
+                <label>Reason</label>
+                <input type="text" id="refundReason" placeholder="Admin refund" />
+                <div class="row" style="margin-top:0.75rem;">
+                    <button type="button" class="btn" id="refundCancel">Cancel</button>
+                    <button type="submit" class="btn primary">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('refundModal');
+        const refundForm = document.getElementById('refundForm');
+        const refundPaymentId = document.getElementById('refundPaymentId');
+        const refundAmount = document.getElementById('refundAmount');
+        const refundReason = document.getElementById('refundReason');
+        const refundMethod = document.getElementById('refundMethod');
+
+        document.querySelectorAll('[data-refund-btn]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id');
+                const amount = Number(btn.getAttribute('data-amount') || 0);
+                const refunded = Number(btn.getAttribute('data-refunded') || 0);
+                const remaining = Math.max(0, amount - refunded);
+                refundPaymentId.value = id;
+                refundAmount.value = remaining.toFixed(2);
+                refundReason.value = 'Admin refund';
+                modal.style.display = 'flex';
+            });
+        });
+
+        document.getElementById('refundCancel').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        refundForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const paymentId = refundPaymentId.value;
+            const payload = {
+                amount: refundAmount.value,
+                reason: refundReason.value,
+                method: refundMethod.value
+            };
+            const res = await fetch(`/admin/refund/${paymentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Refund failed');
+                return;
+            }
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
